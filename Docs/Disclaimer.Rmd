@@ -64,10 +64,14 @@ in collaboration with the
 
 ## Disclaimer
 
-The data offered in this website is the result of modelling exercises and the accuracy of results may be impaired by several factors, like inaccuracies of input data, inappropriate model design or parameterization. Users should be aware of all these limitations when using the data offered here. We decline all responsibility for how the data in this website is used by third parties.
+The data offered in this website is the result of modelling exercises and the
+accuracy of results may be impaired by several factors, like inaccuracies of
+input data, inappropriate model design or parameterization. Users should be aware
+of all these limitations when using the data offered here. We decline all
+responsibility for how the data in this website is used by third parties.
 
 ---
 
-![Vegetation Modeling Group](www/LOGO_Group.png)
-![Forest Sciences Centre of Catalonia (CTFC)](www/logo_ctfc.png)
-![Centre of Ecological Research and Forest Applications (CREAF)](www/logo_creaf.png)
+![Vegetation Modeling Group](../www/LOGO_Group.png)
+![Forest Sciences Centre of Catalonia (CTFC)](../www/logo_ctfc.png)
+![Centre of Ecological Research and Forest Applications (CREAF)](../www/logo_creaf.png)
