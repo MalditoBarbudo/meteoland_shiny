@@ -54,7 +54,7 @@ fluidPage(
         tabPanel(
           title = 'Map',
           icon = icon('globe'),
-          leafletOutput('map')
+          leafletOutput('map', height = 600)
         ),
         
         # data

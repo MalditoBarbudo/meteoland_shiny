@@ -77,7 +77,10 @@ function(input, output) {
   })
   
   # map output
-  # output$map <- renderLeaflet({
-  #   
-  # })
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      fitBounds(lng1 = -0.02, lat1 = 43,
+                lng2 = 3.68, lat2 = 40) %>%
+      addProviderTiles(providers$Esri.WorldImagery)
+  })
 }
