@@ -80,9 +80,9 @@ fluidPage(
         
         # disclaimer
         tabPanel(
-          title = 'Discalimer',
-          icon = icon('info-circle')
-          ## TO DO select an output to show the disclaimer (html, text??)
+          title = 'Disclaimer',
+          icon = icon('info-circle'),
+          includeMarkdown('Docs/Disclaimer.Rmd')
         )
       )
     )
