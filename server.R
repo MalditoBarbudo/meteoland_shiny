@@ -2,6 +2,7 @@
 
 # libraries
 library(shiny)
+library(leaflet)
 
 # server logic
 function(input, output) {
@@ -19,33 +20,39 @@ function(input, output) {
     # Initialize list of inputs
     inputTagList <- tagList()
     
-    # data range input
-    date_range <- dateRangeInput(
-      'date_range',
-      label = 'Select the date or date range (yyyy-mm-dd)',
-      start = Sys.Date(), end = Sys.Date()
-    )
-    
     # Latitude and longitude. To be able to show both in the same line we must
     # to rely in some html/css magic ;)
-    lat <- div(style="display: inline-block;vertical-align:top; width: 150px;",
+    lat <- div(style = "display: inline-block;vertical-align:top; width: 150px;",
                numericInput(
                  'latitude',
                  label = 'Latitude',
-                 value = 41.99))
+                 value = NA))
     
-    lon <- div(style="display: inline-block;vertical-align:top; width: 150px;",
+    lon <- div(style = "display: inline-block;vertical-align:top; width: 150px;",
                numericInput(
                  'longitude',
                  label = 'Longitude',
-                 value = 1.52))
+                 value = NA))
     
     # update tag list
-    inputTagList <- tagAppendChild(inputTagList, date_range)
     inputTagList <- tagAppendChild(inputTagList, lat)
     inputTagList <- tagAppendChild(inputTagList, lon)
     
-    # projection inputs, as it change from historical
+    # historical mode inputs
+    if (input$mode_sel == 'Historical') {
+      
+      # data range input
+      date_range <- dateRangeInput(
+        'date_range',
+        label = 'Select the date or date range (yyyy-mm-dd)',
+        start = Sys.Date(), end = Sys.Date()
+      )
+      
+      # update tag list
+      inputTagList <- tagAppendChild(inputTagList, date_range)
+    }
+    
+    # projection mode inputs
     if (input$mode_sel == 'Projection') {
       
       # climate scenario selector
@@ -68,4 +75,9 @@ function(input, output) {
     # Return updated list of inputs
     inputTagList
   })
+  
+  # map output
+  # output$map <- renderLeaflet({
+  #   
+  # })
 }
