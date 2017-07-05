@@ -39,7 +39,8 @@ fluidPage(
       )
     ),
     
-    # Main panel. Here will be several tabsets (map, data, manual, examples)
+    # Main panel. Here will be several tabsets (map, data, manual, examples,
+    # disclaimer...)
     mainPanel(
       
       # map tabset
@@ -75,6 +76,13 @@ fluidPage(
           title = 'Examples',
           icon = icon('flask')
           ## TO DO select an output to show examples (R code or Rmd?)
+        ),
+        
+        # disclaimer
+        tabPanel(
+          title = 'Discalimer',
+          icon = icon('info-circle')
+          ## TO DO select an output to show the disclaimer (html, text??)
         )
       )
     )
