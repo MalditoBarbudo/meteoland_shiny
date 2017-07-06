@@ -9,7 +9,7 @@ library(dygraphs)
 fluidPage(
   
   # application title
-  titlePanel('Meteoland Service'),
+  titlePanel('meteoland R package'),
   
   # sidebar layout. this will have a dynamic UI, where selecting between historical and
   # projection modes will change the inputs in the sidebar
@@ -120,8 +120,8 @@ fluidPage(
         # manual
         tabPanel(
           title = 'Manual',
-          icon = icon('book')
-          ## TO DO select an output to show the manual (Rmd?)
+          icon = icon('book'),
+          includeMarkdown('Docs/User_Guide.Rmd')
         ),
         
         # examples
