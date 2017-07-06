@@ -3,6 +3,10 @@
 # libraries
 library(shiny)
 library(leaflet)
+library(sp)
+library(htmltools)
+
+# load needed data
 
 # server logic
 function(input, output) {
@@ -77,10 +81,19 @@ function(input, output) {
   })
   
   # map output
+  
+  ## colors for AEMET and SCM stations
+  pal <- colorFactor(c("#F22613", "#F7CA18"), domain = c("SMC", "AEMET"))
+  
   output$map <- renderLeaflet({
     leaflet() %>%
       fitBounds(lng1 = -0.02, lat1 = 43,
                 lng2 = 3.68, lat2 = 40) %>%
-      addProviderTiles(providers$Esri.WorldImagery)
+      addProviderTiles(providers$Esri.WorldImagery) %>%
+      # addMarkers(data = foo, icon = ~icon_set[st_network])
+      addCircleMarkers(data = foo,
+                       radius = 3, color = ~pal(st_network),
+                       label = ~htmlEscape(paste(st_network, St_Id,
+                                                 sep = ' - ')))
   })
 }
