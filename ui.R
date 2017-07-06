@@ -3,7 +3,7 @@
 # libraries
 library(shiny)
 library(leaflet)
-library(DT)
+library(dygraphs)
 
 # fluid page ui
 fluidPage(
@@ -52,6 +52,13 @@ fluidPage(
       # Dinamic ui to show inputs and buttons depending on the mode selected
       uiOutput(
         outputId = 'dinamic_inputs'
+      ),
+      
+      # Action button to start the interpolation
+      actionButton(
+        'ready_btn',
+        'Ready',
+        icon = icon('check')
       )
     ),
     
@@ -76,8 +83,38 @@ fluidPage(
         # data
         tabPanel(
           title = 'Data',
-          icon = icon('table'),
-          DT::dataTableOutput('data')
+          icon = icon('area-chart'),
+          
+          # dygraph
+          dygraphOutput('data'),
+          
+          # a little space
+          br(), br(), br(),
+          
+          # fluid row to show the download button  and the variable selector
+          fluidRow(
+            column(
+              9,
+              radioButtons(
+                'var_sel',
+                'Select the variable to visualize',
+                choices = c(
+                  'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
+                ),
+                selected = 'Tmax',
+                inline = TRUE
+              )
+            ),
+            
+            column(
+              3,
+              actionButton(
+                'download_btn',
+                'Download',
+                icon = icon('download')
+              )
+            )
+          )
         ),
         
         # manual
