@@ -17,26 +17,10 @@ function(input, output) {
       return()
     }
     
-    # Initialize list of inputs
+    # Initialize list of inputs. This is necessary because renderUI returns
+    # the result of evaluating an expression. If we want to show several inputs
+    # we must store them in an inputs list that is then returned by the expression.
     inputTagList <- tagList()
-    
-    # Latitude and longitude. To be able to show both in the same line we must
-    # to rely in some html/css magic ;)
-    lat <- div(style = "display: inline-block;vertical-align:top; width: 150px;",
-               numericInput(
-                 'latitude',
-                 label = 'Latitude',
-                 value = NA))
-    
-    lon <- div(style = "display: inline-block;vertical-align:top; width: 150px;",
-               numericInput(
-                 'longitude',
-                 label = 'Longitude',
-                 value = NA))
-    
-    # update tag list
-    inputTagList <- tagAppendChild(inputTagList, lat)
-    inputTagList <- tagAppendChild(inputTagList, lon)
     
     # historical mode inputs
     if (input$mode_sel == 'Historical') {
@@ -55,21 +39,35 @@ function(input, output) {
     # projection mode inputs
     if (input$mode_sel == 'Projection') {
       
-      # climate scenario selector
-      clim_scen <- selectInput(
-        'climate_scenario',
-        'Select the desired climate scenario',
-        choices = c(
-          'CCLM4-8-17_rcp4.5',
-          'CCLM4-8-17_rcp8.5',
-          'RCA4_rcp4.5',
-          'RCA4_rcp8.5'
-        ),
-        selected = 'CCLM4-8-17_rcp4.5'
+      # climate scenario selector. We divide it in two parts, the regional
+      # climatic model and the representative concentration model
+      rcg <- div(
+        style = "display: inline-block;vertical-align:top; width: 150px;",
+        selectInput(
+          'rcg',
+          label = 'RCG',
+          choices = c(
+            'CCLM4-8-17',
+            'RCA4'
+          )
+        )
+      )
+      
+      rcp <- div(
+        style = "display: inline-block;vertical-align:top; width: 150px;",
+        selectInput(
+          'rcp',
+          label = 'RCP',
+          choices = c(
+            'RCP_4.5',
+            'RCP_8'
+          )
+        )
       )
       
       # update tag list
-      inputTagList <- tagAppendChild(inputTagList, clim_scen)
+      inputTagList <- tagAppendChild(inputTagList, rcg)
+      inputTagList <- tagAppendChild(inputTagList, rcp)
     }
     
     # Return updated list of inputs
