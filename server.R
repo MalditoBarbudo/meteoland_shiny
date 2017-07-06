@@ -40,13 +40,14 @@ function(input, output) {
     if (input$mode_sel == 'Projection') {
       
       # climate scenario selector. We divide it in two parts, the regional
-      # climatic model and the representative concentration model
-      rcg <- div(
+      # climatic model and the representative concentration pathway
+      rcm <- div(
         style = "display: inline-block;vertical-align:top; width: 150px;",
         selectInput(
-          'rcg',
-          label = 'RCG',
+          'rcm',
+          label = 'Regional Climate Model',
           choices = c(
+            '',
             'CCLM4-8-17',
             'RCA4'
           )
@@ -54,11 +55,12 @@ function(input, output) {
       )
       
       rcp <- div(
-        style = "display: inline-block;vertical-align:top; width: 150px;",
+        style = "display: inline-block;vertical-align:top; width: 160px;",
         selectInput(
           'rcp',
-          label = 'RCP',
+          label = 'Representative Concentration Pathway',
           choices = c(
+            '',
             'RCP_4.5',
             'RCP_8'
           )
@@ -66,7 +68,7 @@ function(input, output) {
       )
       
       # update tag list
-      inputTagList <- tagAppendChild(inputTagList, rcg)
+      inputTagList <- tagAppendChild(inputTagList, rcm)
       inputTagList <- tagAppendChild(inputTagList, rcp)
     }
     
