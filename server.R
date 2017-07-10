@@ -36,7 +36,7 @@ function(input, output, session) {
       date_range <- dateRangeInput(
         'date_range',
         label = 'Select the date or date range (yyyy-mm-dd)',
-        start = Sys.Date(), end = Sys.Date()
+        start = NA, end = NA
       )
 
       # update tag list

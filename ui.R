@@ -73,10 +73,11 @@ navbarPage(
             wellPanel(
               
               # Mode selector
-              selectInput(
+              radioButtons(
                 inputId = 'mode_sel',
                 label = 'Please select the desired mode:',
-                choices = c('Historical', 'Projection')
+                choices = c('Historical', 'Projection'),
+                inline = TRUE, selected = 'Historical'
               ),
               
               # latitude and longitude selector. To be able to show both in the same
