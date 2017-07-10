@@ -155,9 +155,9 @@ navbarPage(
         fluidRow(
           column(
             9,
-            radioButtons(
-              'var_sel',
-              'Select the variable to visualize',
+            checkboxGroupInput(
+              inputId = 'var_sel',
+              label = 'Select the variable to visualize',
               choices = c(
                 'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
               ),
