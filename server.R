@@ -84,18 +84,13 @@ function(input, output, session) {
   })
   
   # map output
-  
-  ## colors for AEMET and SCM stations
-  pal <- colorFactor(c("#F22613", "#F7CA18"), domain = c("SMC", "AEMET"))
-  
   output$map <- renderLeaflet({
     leaflet() %>%
       fitBounds(lng1 = -0.02, lat1 = 43,
                 lng2 = 3.68, lat2 = 40) %>%
       addProviderTiles(providers$Esri.WorldImagery) %>%
-      # addMarkers(data = stations_data, icon = ~icon_set[st_network])
       addCircleMarkers(data = stations_data,
-                       radius = 3, color = ~pal(st_network),
+                       radius = 3, color = 'yellow',
                        label = ~htmlEscape(paste(st_network, St_Id,
                                                  sep = ' - ')))
   })
