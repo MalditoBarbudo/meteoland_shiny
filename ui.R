@@ -80,6 +80,14 @@ navbarPage(
                 inline = TRUE, selected = 'Historical'
               ),
               
+              # point/grid selector
+              radioButtons(
+                inputId = 'point_grid_sel',
+                label = 'Points (up to 10) or Grid?',
+                choices = c('Points', 'Grid'),
+                inline = TRUE, selected = 'Points'
+              ),
+              
               # latitude and longitude selector. To be able to show both in the same
               # line we must to rely in some html/css magic ;)
               div(style = "display: inline-block;vertical-align:top; width: 135px;",
@@ -92,7 +100,26 @@ navbarPage(
                   numericInput(
                     'longitude',
                     label = 'Longitude',
-                    value = NA))
+                    value = NA)),
+              
+              # conditional panel to show in case of grid. In this case we need
+              # two different sets of coordinates, the upper left and the bottom
+              # right coordinates of the boundary box desired by the user
+              conditionalPanel(
+                condition = "input.point_grid_sel == 'Grid'",
+                
+                div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                    numericInput(
+                      'latitude',
+                      label = 'Latitude bottom right',
+                      value = NA)),
+                
+                div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                    numericInput(
+                      'longitude',
+                      label = 'Longitude bottom right',
+                      value = NA))
+              )
             ),
             
             # Dinamic ui to show inputs and buttons depending on the mode selected
