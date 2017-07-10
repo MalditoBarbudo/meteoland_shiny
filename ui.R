@@ -24,7 +24,7 @@ navbarPage(
   
   # meteoland R package manual tab
   tabPanel(
-    title = 'meteoland User Guide', icon = icon('book'),
+    title = 'User Guide', icon = icon('book'),
     
     # Html document (generated from an Rmd)
     includeMarkdown('Docs/User_Guide.Rmd')
@@ -32,7 +32,7 @@ navbarPage(
   
   # meteoland R package examples
   tabPanel(
-    title = 'meteoland Examples', icon = icon('flask'),
+    title = 'Examples', icon = icon('flask'),
     
     ## TO DO add some examples of using meteoland with real data. Probably
     ## an html document generated from an Rmd.

@@ -88,11 +88,20 @@ function(input, output, session) {
     leaflet() %>%
       fitBounds(lng1 = -0.02, lat1 = 43,
                 lng2 = 3.68, lat2 = 40) %>%
-      addProviderTiles(providers$Esri.WorldImagery) %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = 'Imagery') %>%
+      addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
       addCircleMarkers(data = stations_data,
                        radius = 3, color = 'yellow',
                        label = ~htmlEscape(paste(st_network, St_Id,
-                                                 sep = ' - ')))
+                                                 sep = ' - ')),
+                       group = 'Stations') %>%
+      addLayersControl(
+        baseGroups = c('Imagery', 'Toner Lite'),
+        overlayGroups = c('Stations'),
+        position = 'bottomright',
+        options = layersControlOptions(collapse = FALSE)
+      ) %>%
+      hideGroup("Stations")
   })
   
   output$data <- renderDygraph({
