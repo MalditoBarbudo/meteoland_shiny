@@ -83,7 +83,7 @@ navbarPage(
               # point/grid selector
               radioButtons(
                 inputId = 'point_grid_sel',
-                label = 'Points (up to 10) or Grid?',
+                label = 'Points or Grid?',
                 choices = c('Points', 'Grid'),
                 inline = TRUE, selected = 'Points'
               ),
@@ -118,7 +118,10 @@ navbarPage(
                     numericInput(
                       'longitude',
                       label = 'Longitude bottom right',
-                      value = NA))
+                      value = NA)),
+                
+                p("Grid mode selected."),
+                p("Please provide the upper right coordinates and the bottom right coordinates of the desired grid.")
               )
             ),
             
