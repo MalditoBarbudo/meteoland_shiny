@@ -157,7 +157,7 @@ navbarPage(
             9,
             checkboxGroupInput(
               inputId = 'var_sel',
-              label = 'Select the variable to visualize',
+              label = 'Select one or more variables to visualize',
               choices = c(
                 'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
               ),

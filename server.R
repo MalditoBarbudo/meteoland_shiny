@@ -89,6 +89,8 @@ function(input, output, session) {
       fitBounds(lng1 = -0.02, lat1 = 43,
                 lng2 = 3.68, lat2 = 40) %>%
       addProviderTiles(providers$Esri.WorldImagery, group = 'Imagery') %>%
+      addProviderTiles(providers$OpenStreetMap,
+                       group = 'OSM') %>%
       addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
       addCircleMarkers(data = stations_data,
                        radius = 3, color = 'yellow',
@@ -96,7 +98,7 @@ function(input, output, session) {
                                                  sep = ' - ')),
                        group = 'Stations') %>%
       addLayersControl(
-        baseGroups = c('Imagery', 'Toner Lite'),
+        baseGroups = c('Imagery', 'OSM', 'Toner Lite'),
         overlayGroups = c('Stations'),
         position = 'bottomright',
         options = layersControlOptions(collapse = FALSE)
