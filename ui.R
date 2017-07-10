@@ -46,6 +46,17 @@ navbarPage(
     tabsetPanel(
       type = 'pills', id = 'shiny_tabs',
       
+      # app guide tab
+      tabPanel(
+        title = 'App user guide', icon = icon('book'),
+        
+        # alittle space
+        br(),
+        
+        # a nice document explaining how to use the app
+        includeMarkdown('Docs/app_user_guide.Rmd')
+      ),
+      
       # user input tab
       tabPanel(
         title = 'User input', icon = icon('keyboard-o'),
