@@ -27,7 +27,7 @@ navbarPage(
     title = 'meteoland User Guide', icon = icon('book'),
     
     # Html document (generated from an Rmd)
-    includeHTML('Docs/User_Guide.html')
+    includeMarkdown('Docs/User_Guide.Rmd')
   ),
   
   # meteoland R package examples
@@ -36,123 +36,103 @@ navbarPage(
     
     ## TO DO add some examples of using meteoland with real data. Probably
     ## an html document generated from an Rmd.
-    includeHTML('Docs/Examples.html')
+    includeMarkdown('Docs/Examples.Rmd')
   ),
   
-  # app tab, with two subsections, a fast guide to use the app and the app
-  # itself
-  navbarMenu(
-    title = 'Shiny app', icon = icon('television'),
+  tabPanel(
+    title = 'Shiny App', icon = icon('television'),
     
-    # fast user guide submenu
-    tabPanel(
-      title = 'App user guide', icon = icon('info'),
+    # in order to obtain two tabs (map and data) we need to nest a tabsetPanel here
+    tabsetPanel(
+      type = 'pills', id = 'shiny_tabs',
       
-      # user guide will be an html document generated from Rmd
-      includeMarkdown('Docs/app_user_guide.Rmd')
-    ),
-    
-    tabPanel(
-      title = 'App', icon = icon('television'),
-      
-      # the real app starts here:
-      fluidRow(
+      # user input tab
+      tabPanel(
+        title = 'User input', icon = icon('keyboard-o'),
         
-        # sidebar, but as column
-        column(
-          width = 3,
-          
-          # panel for fixed inputs (those that will not change regarding the mode)
-          wellPanel(
+        # a little space
+        br(),
+        
+        sidebarLayout(
+          sidebarPanel(
+            # sidebar width
+            width = 3,
             
-            # mode selector. The user can select between historical and projected
-            selectInput(
-              inputId = 'mode_sel',
-              label = 'Please select the desired mode:',
-              choices = c('Historical', 'Projection')
+            # panel for fixed inputs
+            wellPanel(
+              
+              # Mode selector
+              selectInput(
+                inputId = 'mode_sel',
+                label = 'Please select the desired mode:',
+                choices = c('Historical', 'Projection')
+              ),
+              
+              # latitude and longitude selector. To be able to show both in the same
+              # line we must to rely in some html/css magic ;)
+              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                  numericInput(
+                    'latitude',
+                    label = 'Latitude',
+                    value = NA)),
+              
+              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                  numericInput(
+                    'longitude',
+                    label = 'Longitude',
+                    value = NA))
             ),
             
-            # latitude and longitude selector. To be able to show both in the same
-            # line we must to rely in some html/css magic ;)
-            div(style = "display: inline-block;vertical-align:top; width: 140px;",
-                numericInput(
-                  'latitude',
-                  label = 'Latitude',
-                  value = NA)),
+            # Dinamic ui to show inputs and buttons depending on the mode selected
+            uiOutput(
+              outputId = 'dinamic_inputs'
+            )
+          ),
+          
+          mainPanel(
+            # main panel width
+            width = 9,
             
-            div(style = "display: inline-block;vertical-align:top; width: 140px;",
-                numericInput(
-                  'longitude',
-                  label = 'Longitude',
-                  value = NA))
-          ),
-          
-          # a little space
-          br(),
-          
-          # Dinamic ui to show inputs and buttons depending on the mode selected
-          uiOutput(
-            outputId = 'dinamic_inputs'
-          ),
-          
-          # Action button to start the interpolation
-          actionButton(
-            'ready_btn',
-            'Ready',
-            icon = icon('check')
+            # map output
+            leafletOutput('map', height = 600)
           )
-        ),
+        )
+      ),
+      
+      # data download tab
+      tabPanel(
+        title = 'Data output', icon = icon('area-chart'),
         
-        column(
-          width = 9,
+        # a little space
+        br(),
+        
+        # dygraph
+        dygraphOutput('data'),
+        
+        # a little spaces
+        br(), br(), br(),
+        
+        # fluid row to show the download button  and the variable selector
+        fluidRow(
+          column(
+            9,
+            radioButtons(
+              'var_sel',
+              'Select the variable to visualize',
+              choices = c(
+                'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
+              ),
+              selected = 'Tmax',
+              inline = TRUE
+            )
+          ),
           
-          tabsetPanel(
-            # general info/aspect of tabset panel
-            id = 'main_tab_panel',
-            type = 'pills',
-            
-            # map
-            tabPanel(
-              title = 'Map',
-              icon = icon('globe'),
-              leafletOutput('map', height = 600)
-            ),
-            
-            # data
-            tabPanel(
-              title = 'Data',
-              icon = icon('area-chart'),
-              
-              # dygraph
-              dygraphOutput('data'),
-              
-              # a little space
-              br(), br(), br(),
-              
-              # fluid row to show the download button  and the variable selector
-              fluidRow(
-                column(
-                  9,
-                  radioButtons(
-                    'var_sel',
-                    'Select the variable to visualize',
-                    choices = c(
-                      'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
-                    ),
-                    selected = 'Tmax',
-                    inline = TRUE
-                  )
-                ),
-                
-                column(
-                  3,
-                  actionButton(
-                    'download_btn',
-                    'Download',
-                    icon = icon('download')
-                  )
-                )
-              )
+          column(
+            3,
+            actionButton(
+              'download_btn',
+              'Download',
+              icon = icon('download')
             )
           )
         )
