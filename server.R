@@ -14,6 +14,17 @@ load('Data/stations_data.RData')
 # server logic
 function(input, output, session) {
   
+  # objects needed to reactiveEvents and so on
+  
+  # 1. empty coordinates data frame, to be able to add clicks in the map and
+  #    manual inputs in the case of more than one coordinate pair
+  user_coords <- reactiveValues()
+  
+  user_coords$df <- data.frame(
+    lat = numeric(0),
+    lng =  numeric(0)
+  )
+  
   # First we need the dinamic UI to show the input options corresponding to the
   # selected mode
   
@@ -52,6 +63,8 @@ function(input, output, session) {
         label = 'Select the date or date range (limited to the current year)',
         start = NA, end = NA,
         max = Sys.Date(),
+        # min limit to select the date for current mode is the start of the
+        # current year:
         min = as.Date(paste0(format(Sys.Date(), '%Y'), '-01', '-01'))
       )
       
@@ -135,4 +148,54 @@ function(input, output, session) {
     dygraph(as.xts(fake_data[,input$var_sel],
                    order.by = fake_data$Date))
   })
+  
+  ##### Current mode coordinates selection #####
+  
+  # observe event to record the map clicks and append the coordinates clicked
+  # to a data frame of coordinates
+  observeEvent(
+    eventExpr = input$map_click,
+    handlerExpr = {
+      # collect only the coordinates on mouse click
+      coord_clicked <- as.data.frame(input$map_click)[,1:2]
+      # we need to limit the coord list to 10:
+      if (length(user_coords$df[,1]) < 10) {
+        user_coords$df <<- rbind(user_coords$df, coord_clicked)
+      }
+    }
+  )
+  
+  # observe event to record coordinates manually introduced
+  observeEvent(
+    eventExpr = input$append_coord_button,
+    handlerExpr = {
+      if (!is.na(input$latitude) & !is.na(input$longitude)) {
+        if (length(user_coords$df[,1]) < 10) {
+          coords_manual <- data.frame(lat = input$latitude,
+                                      lng = input$longitude)
+          user_coords$df <<- rbind(user_coords$df, coords_manual)
+        }
+      }
+    }
+  )
+  
+  # output to show the user selected coordinates
+  output$user_coords <- renderTable(
+    expr = {user_coords$df},
+    digits = 4
+  )
+  
+  # logic for the reset button
+  observeEvent(
+    eventExpr = input$reset_coord_button,
+    handlerExpr = {
+      user_coords$df <<- NULL
+    }
+  )
+  
+  # debug
+  # output$clicked <- renderPrint(as.data.frame(input$map_click))
+  # output$lat_debug <- renderPrint(input$latitude)
+  # output$long_debug <- renderPrint(input$longitude)
+  
 }

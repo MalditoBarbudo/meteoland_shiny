@@ -83,7 +83,7 @@ navbarPage(
               # point/grid selector
               radioButtons(
                 inputId = 'point_grid_sel',
-                label = 'Points or Grid?',
+                label = 'Points (up to 10) or Grid?',
                 choices = c('Points', 'Grid'),
                 inline = TRUE, selected = 'Points'
               ),
@@ -102,6 +102,13 @@ navbarPage(
                     label = 'Longitude',
                     value = NA)),
               
+              # Append coordinates button
+              actionButton(
+                inputId = 'append_coord_button',
+                label = 'Append coords',
+                icon = icon('bullseye')
+              ),
+              
               # conditional panel to show in case of grid. In this case we need
               # two different sets of coordinates, the upper left and the bottom
               # right coordinates of the boundary box desired by the user
@@ -110,13 +117,13 @@ navbarPage(
                 
                 div(style = "display: inline-block;vertical-align:top; width: 135px;",
                     numericInput(
-                      'latitude',
+                      'latitude_bottom',
                       label = 'Latitude bottom right',
                       value = NA)),
                 
                 div(style = "display: inline-block;vertical-align:top; width: 135px;",
                     numericInput(
-                      'longitude',
+                      'longitude_bottom',
                       label = 'Longitude bottom right',
                       value = NA)),
                 
@@ -128,6 +135,42 @@ navbarPage(
             # Dinamic ui to show inputs and buttons depending on the mode selected
             uiOutput(
               outputId = 'dinamic_inputs'
+            ),
+            
+            # selected coordinates output, we need a fluid row to put inline
+            # the selected coordinates and the clear button. All of this is in
+            # a conditional panel to show only if points are selected
+            
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Points'",
+              br(),
+              h5('Selected points:'),
+              
+              fluidRow(
+                
+                # coord column
+                column(
+                  width = 6,
+                  br(),
+                  tableOutput('user_coords')
+                ),
+                
+                # reset button column
+                column(
+                  width = 6,
+                  br(), br(),
+                  actionButton(
+                    inputId = 'reset_coord_button',
+                    label = 'Reset coords',
+                    icon = icon('eraser')
+                  )
+                )
+              )#,
+              
+              # debug
+              # textOutput('clicked'),
+              # textOutput('lat_debug'),
+              # textOutput('long_debug')
             )
           ),
           
