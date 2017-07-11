@@ -69,9 +69,8 @@ navbarPage(
             # sidebar width
             width = 3,
             
-            # panel for fixed inputs
+            # panel for fixed inputs (mode and point/grid)
             wellPanel(
-              
               # Mode selector
               radioButtons(
                 inputId = 'mode_sel',
@@ -86,55 +85,50 @@ navbarPage(
                 label = 'Points (up to 10) or Grid?',
                 choices = c('Points', 'Grid'),
                 inline = TRUE, selected = 'Points'
-              ),
-              
-              # latitude and longitude selector. To be able to show both in the same
-              # line we must to rely in some html/css magic ;)
-              div(style = "display: inline-block;vertical-align:top; width: 135px;",
-                  numericInput(
-                    'latitude',
-                    label = 'Latitude',
-                    value = NA)),
-              
-              div(style = "display: inline-block;vertical-align:top; width: 135px;",
-                  numericInput(
-                    'longitude',
-                    label = 'Longitude',
-                    value = NA)),
-              
-              # Append coordinates button
-              actionButton(
-                inputId = 'append_coord_button',
-                label = 'Append coords',
-                icon = icon('bullseye')
-              ),
-              
-              # conditional panel to show in case of grid. In this case we need
-              # two different sets of coordinates, the upper left and the bottom
-              # right coordinates of the boundary box desired by the user
-              conditionalPanel(
-                condition = "input.point_grid_sel == 'Grid'",
-                
-                div(style = "display: inline-block;vertical-align:top; width: 135px;",
-                    numericInput(
-                      'latitude_bottom',
-                      label = 'Latitude bottom right',
-                      value = NA)),
-                
-                div(style = "display: inline-block;vertical-align:top; width: 135px;",
-                    numericInput(
-                      'longitude_bottom',
-                      label = 'Longitude bottom right',
-                      value = NA)),
-                
-                p("Grid mode selected."),
-                p("Please provide the upper right coordinates and the bottom right coordinates of the desired grid.")
               )
             ),
             
             # Dinamic ui to show inputs and buttons depending on the mode selected
-            uiOutput(
-              outputId = 'dinamic_inputs'
+            wellPanel(
+              uiOutput(
+                outputId = 'dinamic_inputs'
+              )
+            ),
+            
+            # latitude and longitude selector. To be able to show both in the same
+            # line we must to rely in some html/css magic ;)
+            div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                numericInput(
+                  'latitude',
+                  label = 'Latitude',
+                  value = NA)),
+            
+            div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                numericInput(
+                  'longitude',
+                  label = 'Longitude',
+                  value = NA)),
+            
+            # conditional panel to show in case of grid. In this case we need
+            # two different sets of coordinates, the upper left and the bottom
+            # right coordinates of the boundary box desired by the user
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Grid'",
+              
+              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                  numericInput(
+                    'latitude_bottom',
+                    label = 'Latitude bottom right',
+                    value = NA)),
+              
+              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+                  numericInput(
+                    'longitude_bottom',
+                    label = 'Longitude bottom right',
+                    value = NA)),
+              
+              p("Grid mode selected."),
+              p("Please provide the upper right coordinates and the bottom right coordinates of the desired grid.")
             ),
             
             # selected coordinates output, we need a fluid row to put inline
@@ -143,7 +137,16 @@ navbarPage(
             
             conditionalPanel(
               condition = "input.point_grid_sel == 'Points'",
-              br(),
+              
+              # Append coordinates button
+              actionButton(
+                inputId = 'append_coord_button',
+                label = 'Append coords',
+                icon = icon('bullseye')
+              ),
+              
+              # a little space and a header
+              br(), br(),
               h5('Selected points:'),
               
               fluidRow(

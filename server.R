@@ -60,7 +60,7 @@ function(input, output, session) {
       # data range input (limited to the current year)
       date_range_current <- dateRangeInput(
         'date_range_current',
-        label = 'Select the date or date range (limited to the current year)',
+        label = 'Select the date or date range (only current year)',
         start = NA, end = NA,
         max = Sys.Date(),
         # min limit to select the date for current mode is the start of the
@@ -78,7 +78,7 @@ function(input, output, session) {
       # climate scenario selector. We divide it in two parts, the regional
       # climatic model and the representative concentration pathway
       rcm <- div(
-        style = "display: inline-block;vertical-align:top; width: 150px;",
+        style = "display: inline-block;vertical-align:top; width: 130px;",
         selectInput(
           'rcm',
           label = 'Regional Climate Model',
@@ -91,7 +91,7 @@ function(input, output, session) {
       )
 
       rcp <- div(
-        style = "display: inline-block;vertical-align:top; width: 160px;",
+        style = "display: inline-block;vertical-align:top; width: 130px;",
         selectInput(
           'rcp',
           label = 'Representative Concentration Pathway',
