@@ -76,7 +76,7 @@ navbarPage(
               radioButtons(
                 inputId = 'mode_sel',
                 label = 'Please select the desired mode:',
-                choices = c('Historical', 'Projection'),
+                choices = c('Historical', 'Current', 'Projection'),
                 inline = TRUE, selected = 'Historical'
               ),
               

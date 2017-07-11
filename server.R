@@ -26,21 +26,37 @@ function(input, output, session) {
 
     # Initialize list of inputs. This is necessary because renderUI returns
     # the result of evaluating an expression. If we want to show several inputs
-    # we must store them in an inputs list that is then returned by the expression.
+    # we must store them in an input list that is then returned by the expression.
     inputTagList <- tagList()
 
     # historical mode inputs
     if (input$mode_sel == 'Historical') {
 
       # data range input
-      date_range <- dateRangeInput(
-        'date_range',
-        label = 'Select the date or date range (yyyy-mm-dd)',
+      date_range_historical <- dateRangeInput(
+        'date_range_historical',
+        label = 'Select the date or date range',
         start = NA, end = NA
       )
 
       # update tag list
-      inputTagList <- tagAppendChild(inputTagList, date_range)
+      inputTagList <- tagAppendChild(inputTagList, date_range_historical)
+    }
+    
+    # current mode inputs
+    if (input$mode_sel ==  'Current') {
+      
+      # data range input (limited to the current year)
+      date_range_current <- dateRangeInput(
+        'date_range_current',
+        label = 'Select the date or date range (limited to the current year)',
+        start = NA, end = NA,
+        max = Sys.Date(),
+        min = as.Date(paste0(format(Sys.Date(), '%Y'), '-01', '-01'))
+      )
+      
+      # update tag list
+      inputTagList <- tagAppendChild(inputTagList, date_range_current)
     }
 
     # projection mode inputs
