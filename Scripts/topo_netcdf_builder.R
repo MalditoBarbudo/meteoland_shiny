@@ -88,3 +88,5 @@ index_y <- which.min(dist_y)
 index_ok <- c(index_x, index_y)
 
 ncvar_get(nc, 'Elevation', index_ok, c(1,1))
+ncvar_get(nc, 'Slope', index_ok, c(1,1))
+ncvar_get(nc, 'Aspect', index_ok, c(1,1))
