@@ -8,8 +8,9 @@ library(htmltools)
 library(dygraphs)
 library(xts)
 
-# load needed data
+# load needed data and functions
 load('Data/stations_data.RData')
+source('global.R')
 
 # server logic
 function(input, output, session) {
@@ -136,17 +137,16 @@ function(input, output, session) {
   })
   
   output$data <- renderDygraph({
-    fake_data <- data.frame(
-      Date = seq(Sys.Date() - 4, Sys.Date() + 5, 1),
-      Tmax = round(rnorm(10, 30, 2), 2),
-      Tmin = round(rnorm(10, 15, 3), 2),
-      RH = round(rnorm(10, 65, 10), 2),
-      Precev = c(0,0,0,0,0,1,0,1,0,0),
-      Precam = c(0,0,0,0,0,225,0,350,0,0)
-    )
+    # erase the plot if the reset coordinates button is clicked
+    input$reset_coord_button
     
-    dygraph(as.xts(fake_data[,input$var_sel],
-                   order.by = fake_data$Date))
+    # get the data
+    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df$Date <- interpolated_data()@dates
+    
+    # plot the data
+    dygraph(as.xts(interpolated_df[,c('MeanTemperature', 'MaxTemperature', 'MinTemperature')],
+                   order.by = interpolated_df$Date))
   })
   
   ##### Current mode coordinates selection #####
@@ -193,9 +193,27 @@ function(input, output, session) {
     }
   )
   
+  # logic for the process button
+  interpolated_data <- eventReactive(
+    eventExpr = input$process_button,
+    valueExpr = {
+      # current points method
+      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+        interpolated_data <- current_points_mode_process(
+          user_df = user_coords$df,
+          user_dates = input$date_range_current
+        )
+      }
+      
+      # return the interpolated data
+      return(interpolated_data)
+    }
+  )
+  
   # debug
   # output$clicked <- renderPrint(as.data.frame(input$map_click))
   # output$lat_debug <- renderPrint(input$latitude)
   # output$long_debug <- renderPrint(input$longitude)
+  # output$dates_debug <- renderPrint(input$date_range_current)
   
 }

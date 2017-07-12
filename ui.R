@@ -168,12 +168,23 @@ navbarPage(
                     icon = icon('eraser')
                   )
                 )
-              )#,
+              )
               
               # debug
               # textOutput('clicked'),
               # textOutput('lat_debug'),
               # textOutput('long_debug')
+              # textOutput('dates_debug')
+            ),
+            
+            # a little space
+            br(), br(),
+            
+            # Action button to activate the process
+            actionButton(
+              inputId = 'process_button',
+              label = 'Go!',
+              icon = icon('play')
             )
           ),
           
