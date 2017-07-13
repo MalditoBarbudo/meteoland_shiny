@@ -66,9 +66,17 @@ convertTopographyCoords <- function(coord_df) {
 # Interpolation process for "current mode"
 
 current_points_mode_process <- function(user_df, user_dates,
-                                        excludeRainFromStations = character(0)) {
+                                        excludeRainFromStations = character(0),
+                                        updateProgress = NULL) {
   
   # STEP 1 BUILD THE INTERPOLATOR OBJECT
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.03
+    )
+  }
+  
   
   # get the default parameters for the MetereologyInterpolationData object
   params <- defaultInterpolationParams()
@@ -164,6 +172,12 @@ current_points_mode_process <- function(user_df, user_dates,
   rm(tmin_cal, tmax_cal, tdew_cal, prec_cal)
   
   # STEP 2 BUILD THE TOPOGRAPHY OBJECT
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the topography object',
+      value = 0.33
+    )
+  }
   
   # Convert latlong to utm
   user_coords_utm <- convertTopographyCoords(user_df)
@@ -198,6 +212,12 @@ current_points_mode_process <- function(user_df, user_dates,
   )
   
   # STEP 3 MAKE THE INTERPOLATION
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Starting the interpolation process (this can take a while)',
+      value = 0.5
+    )
+  }
   
   res <- interpolationpoints(
     object = interpolator,
