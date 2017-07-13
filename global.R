@@ -149,6 +149,20 @@ current_points_mode_process <- function(user_df, user_dates,
     params = params
   )
   
+  # and set the parameters obtained in the calibration
+  load('Data/calibrations.RData')
+  interpolator@params$N_MinTemperature = tmin_cal$N
+  interpolator@params$alpha_MinTemperature = tmin_cal$alpha
+  interpolator@params$N_MaxTemperature = tmax_cal$N
+  interpolator@params$alpha_MaxTemperature = tmax_cal$alpha
+  interpolator@params$N_DewTemperature = tdew_cal$N
+  interpolator@params$alpha_DewTemperature = tdew_cal$alpha
+  interpolator@params$N_PrecipitationEvent = prec_cal$N
+  interpolator@params$alpha_PrecipitationEvent = prec_cal$alpha
+  interpolator@params$N_PrecipitationAmount = prec_cal$N
+  interpolator@params$alpha_PrecipitationAmount = prec_cal$alpha
+  rm(tmin_cal, tmax_cal, tdew_cal, prec_cal)
+  
   # STEP 2 BUILD THE TOPOGRAPHY OBJECT
   
   # Convert latlong to utm
