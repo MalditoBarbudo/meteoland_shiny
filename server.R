@@ -154,6 +154,12 @@ function(input, output, session) {
           choiceValues = row.names(user_coords$df),
           inline = TRUE
         )
+        
+        updateTabsetPanel(
+          session,
+          inputId = 'shiny_tabs',
+          selected = 'Data output'
+        )
       })
     }
   })
