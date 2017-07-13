@@ -205,8 +205,15 @@ navbarPage(
         # a little space
         br(),
         
-        # dygraph
-        dygraphOutput('data'),
+        # coordinate pair selector code will be here
+        
+        # dygraphs
+        ## temperature
+        dygraphOutput('temperature', height = '350px'),
+        ## humidity
+        dygraphOutput('humidity', height = '350px'),
+        ## prec & PET
+        dygraphOutput('prec_and_pet', height = '350px'),
         
         # a little spaces
         br(), br(), br(),

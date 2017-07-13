@@ -7,6 +7,7 @@ library(sp)
 library(htmltools)
 library(dygraphs)
 library(xts)
+library(ncdf4)
 
 # load needed data and functions
 load('Data/stations_data.RData')
@@ -136,7 +137,8 @@ function(input, output, session) {
       hideGroup("Stations")
   })
   
-  output$data <- renderDygraph({
+  # temperature panel
+  output$temperature <- renderDygraph({
     # erase the plot if the reset coordinates button is clicked
     input$reset_coord_button
     
@@ -146,6 +148,34 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('MeanTemperature', 'MaxTemperature', 'MinTemperature')],
+                   order.by = interpolated_df$Date))
+  })
+  
+  # humidity panel
+  output$humidity <- renderDygraph({
+    # erase the plot if the reset coordinates button is clicked
+    input$reset_coord_button
+    
+    # get the data
+    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df$Date <- interpolated_data()@dates
+    
+    # plot the data
+    dygraph(as.xts(interpolated_df[,c('MeanRelativeHumidity', 'MaxRelativeHumidity', 'MinRelativeHumidity')],
+                   order.by = interpolated_df$Date))
+  })
+  
+  # precipitation and PET panel
+  output$prec_and_pet <- renderDygraph({
+    # erase the plot if the reset coordinates button is clicked
+    input$reset_coord_button
+    
+    # get the data
+    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df$Date <- interpolated_data()@dates
+    
+    # plot the data
+    dygraph(as.xts(interpolated_df[,c('PET', 'Precipitation')],
                    order.by = interpolated_df$Date))
   })
   
