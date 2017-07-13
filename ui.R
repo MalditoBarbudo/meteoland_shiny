@@ -206,6 +206,13 @@ navbarPage(
         br(),
         
         # coordinate pair selector code will be here
+        radioButtons(
+          inputId = 'coord_vis',
+          label = 'Select a coordinate pair to previsualize the data',
+          choices = character(0), # empty until user select coordinates
+          inline = TRUE,
+          selected = character(0)
+        ),
         
         # dygraphs
         ## temperature
@@ -235,7 +242,7 @@ navbarPage(
           
           column(
             3,
-            actionButton(
+            downloadButton(
               'download_btn',
               'Download',
               icon = icon('download')

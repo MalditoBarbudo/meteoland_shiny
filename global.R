@@ -208,3 +208,53 @@ current_points_mode_process <- function(user_df, user_dates,
   return(res)
 }
 
+################################################################################
+# Download button functions. This functions check for the mode selected by the
+# user and generate the data file and filename accordingly.
+
+filename_function <- function(input, user_coords) {
+  
+  # current points mode
+  if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+    
+    # check if there is one or more coordinates provided by the user:
+    if (nrow(user_coords$df) > 1) {
+      # if more than one, file will be a zip
+      return('meteoland_output.zip')
+    } else {
+      # if only one, file will be a txt
+      return('meteoland_output.txt')
+    }
+  }
+  
+  # other modes will be here when developed
+}
+
+content_function <- function(input, user_coords, data, file) {
+  
+  # current points mode
+  if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+    
+    # check if there is one or more coordinates provided by the user:
+    if (nrow(user_coords$df) > 1) {
+      
+      # if more than one, we must establish a temporal directory, create the
+      # different txt files, compress them and return the file
+      temporal_dir <- tempdir()
+      setwd(tempdir())
+      files_to_compress <- c()
+      for (i in 1:nrow(user_coords$df)) {
+        tmp_file <- paste0('meteoland_output_', i, '.txt')
+        files_to_compress <- c(files_to_compress, tmp_file)
+        writemeteorologypoint(data@data[[i]], tmp_file)
+      }
+      
+      zip(file, files_to_compress)
+    } else {
+      # if only one, write it directly
+      writemeteorologypoint(data@data[[1]], file)
+    }
+  }
+  
+  # other modes logic will be here
+}

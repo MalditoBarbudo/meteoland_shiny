@@ -137,13 +137,40 @@ function(input, output, session) {
       hideGroup("Stations")
   })
   
+  # dygraph outputs
+  # coord_pair selector update
+  observe({
+    # input to trigger the update
+    if (input$process_button > 0) {
+      # update the selector. We use isolate to avoid the crash of the app if the
+      # user go back and press the reset button
+      isolate({
+        updateRadioButtons(
+          session,
+          inputId = 'coord_vis',
+          label = 'Select a coordinate pair to previsualize the data',
+          choiceNames = paste(round(user_coords$df$lat, 2),
+                              round(user_coords$df$lng, 2), sep = ' / '),
+          choiceValues = row.names(user_coords$df),
+          inline = TRUE
+        )
+      })
+    }
+  })
+  
+  # Download button logic
+  output$download_btn <- downloadHandler(
+    filename = filename_function(input, user_coords),
+    content = function(file) {
+      content_function(input, user_coords, interpolated_data(), file)
+    }
+  )
+  
+  
   # temperature panel
   output$temperature <- renderDygraph({
-    # erase the plot if the reset coordinates button is clicked
-    input$reset_coord_button
-    
     # get the data
-    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -153,11 +180,8 @@ function(input, output, session) {
   
   # humidity panel
   output$humidity <- renderDygraph({
-    # erase the plot if the reset coordinates button is clicked
-    input$reset_coord_button
-    
     # get the data
-    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -167,11 +191,8 @@ function(input, output, session) {
   
   # precipitation and PET panel
   output$prec_and_pet <- renderDygraph({
-    # erase the plot if the reset coordinates button is clicked
-    input$reset_coord_button
-    
     # get the data
-    interpolated_df <- interpolated_data()@data[[1]] #### OJO SOLO ESTOY ENSEÑANDO UN PUNTO, HAY QUE MEJORARLO
+    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -209,7 +230,7 @@ function(input, output, session) {
     }
   )
   
-  # output to show the user selected coordinates
+  # output to show the user selected coordinates in the user input tab
   output$user_coords <- renderTable(
     expr = {user_coords$df},
     digits = 4
@@ -219,7 +240,10 @@ function(input, output, session) {
   observeEvent(
     eventExpr = input$reset_coord_button,
     handlerExpr = {
-      user_coords$df <<- NULL
+      user_coords$df <<- data.frame(
+        lat = numeric(0),
+        lng =  numeric(0)
+      )
     }
   )
   
