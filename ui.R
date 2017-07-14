@@ -175,6 +175,7 @@ navbarPage(
               # textOutput('lat_debug'),
               # textOutput('long_debug')
               # textOutput('dates_debug')
+              ,textOutput('interpolated_df_debug')
             ),
             
             # a little space

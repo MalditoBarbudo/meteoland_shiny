@@ -153,8 +153,7 @@ function(input, output, session) {
           label = 'Select a coordinate pair to previsualize the data',
           choiceNames = paste(round(user_coords$df$lat, 2),
                               round(user_coords$df$lng, 2), sep = ' / '),
-          choiceValues = row.names(user_coords$df),
-          inline = TRUE
+          choiceValues = row.names(user_coords$df)
         )
         
         updateTabsetPanel(
@@ -178,7 +177,7 @@ function(input, output, session) {
   # temperature panel
   output$temperature <- renderDygraph({
     # get the data
-    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
+    interpolated_df <- interpolated_data()@data[[as.numeric(input$coord_vis)]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -189,7 +188,7 @@ function(input, output, session) {
   # humidity panel
   output$humidity <- renderDygraph({
     # get the data
-    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
+    interpolated_df <- interpolated_data()@data[[as.numeric(input$coord_vis)]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -200,7 +199,7 @@ function(input, output, session) {
   # precipitation and PET panel
   output$prec_and_pet <- renderDygraph({
     # get the data
-    interpolated_df <- interpolated_data()@data[[input$coord_vis]]
+    interpolated_df <- interpolated_data()@data[[as.numeric(input$coord_vis)]]
     interpolated_df$Date <- interpolated_data()@dates
     
     # plot the data
@@ -306,5 +305,12 @@ function(input, output, session) {
   # output$lat_debug <- renderPrint(input$latitude)
   # output$long_debug <- renderPrint(input$longitude)
   # output$dates_debug <- renderPrint(input$date_range_current)
+  output$interpolated_df_debug <- renderPrint(
+    # class(interpolated_data()@data[[input$coord_vis]])
+    paste(class(interpolated_data()@data),
+          length(interpolated_data()@data),
+          names(interpolated_data()@data),
+          sep = ' - ')
+  )
   
 }
