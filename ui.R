@@ -5,6 +5,7 @@
 library(shiny)
 library(leaflet)
 library(dygraphs)
+library(shinythemes)
 
 # Navbar page layout. This is intended to offer a quick glance of the app, the
 # package, examples and manuals, and finally, an app to use the package with
@@ -13,6 +14,7 @@ library(dygraphs)
 navbarPage(
   title = 'meteoland R package',
   id = 'navbar_meteoland',
+  theme = shinytheme('darkly'),
   
   # About tab (tabwith r package description, disclaimer and so on...)
   tabPanel(
@@ -175,7 +177,7 @@ navbarPage(
               # textOutput('lat_debug'),
               # textOutput('long_debug')
               # textOutput('dates_debug')
-              ,textOutput('interpolated_df_debug')
+              # ,textOutput('interpolated_df_debug')
             ),
             
             # a little space
@@ -206,47 +208,51 @@ navbarPage(
         # a little space
         br(),
         
-        # coordinate pair selector code will be here
-        radioButtons(
-          inputId = 'coord_vis',
-          label = 'Select a coordinate pair to previsualize the data',
-          choices = character(0), # empty until user select coordinates
-          inline = TRUE,
-          selected = character(0)
-        ),
-        
-        # dygraphs
-        ## temperature
-        dygraphOutput('temperature', height = '350px'),
-        ## humidity
-        dygraphOutput('humidity', height = '350px'),
-        ## prec & PET
-        dygraphOutput('prec_and_pet', height = '350px'),
-        
-        # a little spaces
-        br(), br(), br(),
-        
-        # fluid row to show the download button  and the variable selector
+        # fluid row to show the panels in one column and the coord selector and
+        # download button in other column
         fluidRow(
+          
+          # panels column
           column(
-            9,
-            checkboxGroupInput(
-              inputId = 'var_sel',
-              label = 'Select one or more variables to visualize',
-              choices = c(
-                'Tmax', 'Tmin', 'RH', 'Precev', 'Precam'
-              ),
-              selected = 'Tmax',
-              inline = TRUE
+            width = 9,
+            # dygraphs
+            ## temperature
+            wellPanel(
+              h4('Temperature'),
+              dygraphOutput('temperature', height = '350px')
+            ),
+            ## humidity
+            wellPanel(
+              h4('Relative Humidity'),
+              dygraphOutput('humidity', height = '350px')
+            ),
+            ## prec & PET
+            wellPanel(
+              h4('Precipitation & PET'),
+              dygraphOutput('prec_and_pet', height = '350px')
             )
           ),
           
+          # button and selector column
           column(
-            3,
+            width = 3,
+            # download button
             downloadButton(
               'download_btn',
               'Download',
               icon = icon('download')
+            ),
+            
+            # a little space
+            br(), br(),
+            
+            # coordinate pair selector code
+            radioButtons(
+              inputId = 'coord_vis',
+              label = 'Select a coordinate pair to previsualize the data',
+              choices = character(0), # empty until user select coordinates
+              inline = TRUE,
+              selected = character(0)
             )
           )
         )

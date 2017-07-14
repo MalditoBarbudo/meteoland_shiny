@@ -305,12 +305,12 @@ function(input, output, session) {
   # output$lat_debug <- renderPrint(input$latitude)
   # output$long_debug <- renderPrint(input$longitude)
   # output$dates_debug <- renderPrint(input$date_range_current)
-  output$interpolated_df_debug <- renderPrint(
-    # class(interpolated_data()@data[[input$coord_vis]])
-    paste(class(interpolated_data()@data),
-          length(interpolated_data()@data),
-          names(interpolated_data()@data),
-          sep = ' - ')
-  )
+  # output$interpolated_df_debug <- renderPrint(
+  #   # class(interpolated_data()@data[[input$coord_vis]])
+  #   paste(class(interpolated_data()@data),
+  #         length(interpolated_data()@data),
+  #         names(interpolated_data()@data),
+  #         sep = ' - ')
+  # )
   
 }
