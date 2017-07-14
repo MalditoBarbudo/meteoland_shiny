@@ -73,7 +73,7 @@ current_points_mode_process <- function(user_df, user_dates,
   if (is.function(updateProgress)) {
     updateProgress(
       detail = 'Building the interpolation object',
-      value = 0.03
+      value = 0.05
     )
   }
   
@@ -175,7 +175,7 @@ current_points_mode_process <- function(user_df, user_dates,
   if (is.function(updateProgress)) {
     updateProgress(
       detail = 'Building the topography object',
-      value = 0.33
+      value = 0.34
     )
   }
   
@@ -215,7 +215,7 @@ current_points_mode_process <- function(user_df, user_dates,
   if (is.function(updateProgress)) {
     updateProgress(
       detail = 'Starting the interpolation process (this can take a while)',
-      value = 0.5
+      value = 0.55
     )
   }
   
@@ -229,13 +229,95 @@ current_points_mode_process <- function(user_df, user_dates,
 }
 
 ################################################################################
+# Historical points mode logic
+
+historical_points_mode_process <- function(user_df, user_dates,
+                                           updateProgress = NULL) {
+  
+  # STEP 1 GET THE  INTERPOLATOR DATA
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.05
+    )
+  }
+  
+  # load the interpolator mother data
+  load('Data/Interpolator_Mother.rda')
+  
+  # subset by the user dates
+  datevec <- as.Date(user_dates)[[1]]:as.Date(user_dates)[[2]]
+  interpolator <- subsample(interpolator, dates = as.Date(datevec))
+  
+  # STEP 2 BUILD THE TOPOGRAPHY OBJECT
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the topography object',
+      value = 0.34
+    )
+  }
+  
+  # Convert latlong to utm
+  user_coords_utm <- convertTopographyCoords(user_df)
+  
+  # get elevation, slope and aspect values
+  n_coords <- length(user_coords_utm@coords[,1])
+  
+  vals <- vector('list', n_coords)
+  
+  for (i in 1:n_coords) {
+    vals[[i]] <- ncExtractVarValueByCoords(
+      nc_file = file.path('Data', 'Topology_grid.nc'),
+      x_coord = user_coords_utm@coords[i,1],
+      y_coord = user_coords_utm@coords[i,2],
+      var_names = c('Elevation', 'Slope', 'Aspect')
+    )
+  }
+  
+  # vals is a list of named vectors, this must be converted to a data frame
+  # for easily add the variable values to the spatial topography object
+  vals_df <- as.data.frame(matrix(unlist(vals), nrow = length(vals),
+                                  byrow = TRUE))
+  
+  names(vals_df) <- names(vals[[1]])
+  
+  # build the topography object
+  user_topo <- SpatialPointsTopography(
+    points = user_coords_utm,
+    elevation = vals_df$Elevation,
+    slope = vals_df$Slope,
+    aspect = vals_df$Aspect
+  )
+  
+  # OJO, ESTO NO SE SI ESTA BIEN!!!!
+  user_topo@proj4string <- interpolator@proj4string
+  
+  # STEP 3 PERFORMING THE INTERPOLATION
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Starting the interpolation process (this can take a while)',
+      value = 0.45
+    )
+  }
+  
+  res <- interpolationpoints(
+    object = interpolator,
+    points = user_topo,
+    verbose = FALSE
+  )
+  
+  return(res)
+  
+}
+
+################################################################################
 # Download button functions. This functions check for the mode selected by the
 # user and generate the data file and filename accordingly.
 
 filename_function <- function(input, data) {
   
-  # current points mode
-  if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+  # current & historical points modes
+  if (input$mode_sel %in% c('Current', 'Historical') & input$point_grid_sel == 'Points') {
     
     # check if there is one or more coordinates provided by the user:
     if (length(data@data) > 1) {
@@ -253,7 +335,7 @@ filename_function <- function(input, data) {
 content_function <- function(input, data, file) {
   
   # current points mode
-  if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+  if (input$mode_sel %in% c('Current', 'Historical') & input$point_grid_sel == 'Points') {
     
     # check if there is one or more coordinates provided by the user:
     if (length(data@data) > 1) {

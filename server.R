@@ -274,7 +274,28 @@ function(input, output, session) {
         interpolated_data <- current_points_mode_process(
           user_df = user_coords$df,
           user_dates = input$date_range_current,
-          updateProgress = updateProgress()
+          updateProgress = updateProgress
+        )
+      }
+      
+      # historical points mode
+      if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points') {
+        
+        # progress bar logic
+        # Create a Progress object
+        progress <- shiny::Progress$new()
+        progress$set(message = "Processing coordinates", value = 0)
+        # Close the progress when this reactive exits (even if there's an error)
+        on.exit(progress$close())
+        
+        updateProgress <- function(value = NULL, detail = NULL) {
+          progress$set(value = value, detail = detail)
+        }
+        
+        interpolated_data <- historical_points_mode_process(
+          user_df = user_coords$df,
+          user_dates = input$date_range_historical,
+          updateProgress = updateProgress
         )
       }
       
