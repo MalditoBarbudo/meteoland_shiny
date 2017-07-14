@@ -166,9 +166,9 @@ function(input, output, session) {
   
   # Download button logic
   output$download_btn <- downloadHandler(
-    filename = filename_function(input, user_coords),
+    filename = filename_function(input, interpolated_data()),
     content = function(file) {
-      content_function(input, user_coords, interpolated_data(), file)
+      content_function(input, interpolated_data(), file)
     }
   )
   
