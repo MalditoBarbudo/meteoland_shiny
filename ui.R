@@ -253,7 +253,10 @@ navbarPage(
               choices = character(0), # empty until user select coordinates
               inline = TRUE,
               selected = character(0)
-            )
+            ),
+            
+            # topography info
+            textOutput('topo_info')
           )
         )
       )

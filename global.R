@@ -63,6 +63,45 @@ convertTopographyCoords <- function(coord_df) {
 }
 
 ################################################################################
+# function to build the SpatialPointsTopography object
+
+getTopographyObject <- function(user_df) {
+  # Convert latlong to utm
+  user_coords_utm <- convertTopographyCoords(user_df)
+  
+  # get elevation, slope and aspect values
+  n_coords <- length(user_coords_utm@coords[,1])
+  
+  vals <- vector('list', n_coords)
+  
+  for (i in 1:n_coords) {
+    vals[[i]] <- ncExtractVarValueByCoords(
+      nc_file = file.path('Data', 'Topology_grid.nc'),
+      x_coord = user_coords_utm@coords[i,1],
+      y_coord = user_coords_utm@coords[i,2],
+      var_names = c('Elevation', 'Slope', 'Aspect')
+    )
+  }
+  
+  # vals is a list of named vectors, this must be converted to a data frame
+  # for easily add the variable values to the spatial topography object
+  vals_df <- as.data.frame(matrix(unlist(vals), nrow = length(vals),
+                                  byrow = TRUE))
+  
+  names(vals_df) <- names(vals[[1]])
+  
+  # build the topography object
+  user_topo <- SpatialPointsTopography(
+    points = user_coords_utm,
+    elevation = vals_df$Elevation,
+    slope = vals_df$Slope,
+    aspect = vals_df$Aspect
+  )
+  
+  return(user_topo)
+}
+
+################################################################################
 # Interpolation process for "current mode"
 
 current_points_mode_process <- function(user_df, user_dates,
@@ -179,37 +218,7 @@ current_points_mode_process <- function(user_df, user_dates,
     )
   }
   
-  # Convert latlong to utm
-  user_coords_utm <- convertTopographyCoords(user_df)
-  
-  # get elevation, slope and aspect values
-  n_coords <- length(user_coords_utm@coords[,1])
-  
-  vals <- vector('list', n_coords)
-  
-  for (i in 1:n_coords) {
-    vals[[i]] <- ncExtractVarValueByCoords(
-      nc_file = file.path('Data', 'Topology_grid.nc'),
-      x_coord = user_coords_utm@coords[i,1],
-      y_coord = user_coords_utm@coords[i,2],
-      var_names = c('Elevation', 'Slope', 'Aspect')
-    )
-  }
-  
-  # vals is a list of named vectors, this must be converted to a data frame
-  # for easily add the variable values to the spatial topography object
-  vals_df <- as.data.frame(matrix(unlist(vals), nrow = length(vals),
-                                  byrow = TRUE))
-  
-  names(vals_df) <- names(vals[[1]])
-  
-  # build the topography object
-  user_topo <- SpatialPointsTopography(
-    points = user_coords_utm,
-    elevation = vals_df$Elevation,
-    slope = vals_df$Slope,
-    aspect = vals_df$Aspect
-  )
+  user_topo <- getTopographyObject(user_df)
   
   # STEP 3 MAKE THE INTERPOLATION
   if (is.function(updateProgress)) {
@@ -282,37 +291,7 @@ historical_points_mode_process <- function(user_df, user_dates,
     )
   }
   
-  # Convert latlong to utm
-  user_coords_utm <- convertTopographyCoords(user_df)
-  
-  # get elevation, slope and aspect values
-  n_coords <- length(user_coords_utm@coords[,1])
-  
-  vals <- vector('list', n_coords)
-  
-  for (i in 1:n_coords) {
-    vals[[i]] <- ncExtractVarValueByCoords(
-      nc_file = file.path('Data', 'Topology_grid.nc'),
-      x_coord = user_coords_utm@coords[i,1],
-      y_coord = user_coords_utm@coords[i,2],
-      var_names = c('Elevation', 'Slope', 'Aspect')
-    )
-  }
-  
-  # vals is a list of named vectors, this must be converted to a data frame
-  # for easily add the variable values to the spatial topography object
-  vals_df <- as.data.frame(matrix(unlist(vals), nrow = length(vals),
-                                  byrow = TRUE))
-  
-  names(vals_df) <- names(vals[[1]])
-  
-  # build the topography object
-  user_topo <- SpatialPointsTopography(
-    points = user_coords_utm,
-    elevation = vals_df$Elevation,
-    slope = vals_df$Slope,
-    aspect = vals_df$Aspect
-  )
+  user_topo <- getTopographyObject(user_df)
   
   # STEP 3 PERFORMING THE INTERPOLATION
   if (is.function(updateProgress)) {

@@ -213,6 +213,16 @@ function(input, output, session) {
                    order.by = interpolated_df$Date))
   })
   
+  # topography info
+  output$topo_info <- renderText({
+    
+    # get the topo
+    topography <- getTopographyObject(user_coords$df)@data[as.numeric(input$coord_vis),]
+    paste0(' Elevation = ', topography$elevation, ' m. ',
+           ' Slope = ', round(topography$slope, 1), ' degrees. ',
+           ' Aspect = ', round(topography$aspect, 1), ' degrees from North')
+  })
+  
   ##### Current mode coordinates selection #####
   
   # observe event to record the map clicks and append the coordinates clicked
