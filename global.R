@@ -55,7 +55,7 @@ convertTopographyCoords <- function(coord_df) {
   # transform the coordinates porjection to the Topography projection
   coord_utm <- spTransform(
     coord_df,
-    CRS("+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+    CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
   )
   
   # return the result
@@ -113,7 +113,7 @@ current_points_mode_process <- function(user_df, user_dates,
   )
   station_coords_utm <- spTransform(
     stations_coords_sp,
-    CRS("+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+    CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
   )
   
   stations_n <- length(stations_elevation)
@@ -288,9 +288,6 @@ historical_points_mode_process <- function(user_df, user_dates,
     slope = vals_df$Slope,
     aspect = vals_df$Aspect
   )
-  
-  # OJO, ESTO NO SE SI ESTA BIEN!!!!
-  user_topo@proj4string <- interpolator@proj4string
   
   # STEP 3 PERFORMING THE INTERPOLATION
   if (is.function(updateProgress)) {

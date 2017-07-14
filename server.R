@@ -49,7 +49,9 @@ function(input, output, session) {
       date_range_historical <- dateRangeInput(
         'date_range_historical',
         label = 'Select the date or date range',
-        start = NA, end = NA
+        start = NA, end = NA,
+        min = '1976-01-01', max = '2016-12-31',
+        startview = 'decade'
       )
 
       # update tag list
