@@ -269,7 +269,12 @@ function(input, output, session) {
         # Close the progress when this reactive exits (even if there's an error)
         on.exit(progress$close())
         
-        updateProgress <- function(value = NULL, detail = NULL) {
+        updateProgress <- function(value = NULL, detail = NULL, n_coords = NULL) {
+          if (is.null(value)) {
+            value <- progress$getValue()
+            value <- value + ((progress$getMax() - value) / n_coords)
+          }
+          
           progress$set(value = value, detail = detail)
         }
         

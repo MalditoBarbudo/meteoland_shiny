@@ -219,10 +219,35 @@ current_points_mode_process <- function(user_df, user_dates,
     )
   }
   
-  res <- interpolationpoints(
-    object = interpolator,
+  # we are gonna slice the user coordinates to be able to show the progress more
+  # dinamically:
+  # vector to store the interpolated data for each coordinate
+  res_vec <- vector('list', length(user_topo@coords[,1]))
+  
+  # loop to iterate between coordinates and perform the interpolation
+  for (i in 1:length(user_topo@coords[,1])) {
+    # progress updates
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Processing coordinates pair ', i, ' of ',
+                        length(user_topo@coords[,1])),
+        n_coords = length(user_topo@coords[,1])
+      )
+    }
+    
+    # interpolation, but storing only the data
+    res_vec[[i]] <- interpolationpoints(
+      object = interpolator,
+      points = user_topo[i,],
+      verbose = FALSE
+    )@data[[1]]
+  }
+  
+  # now we build the spatialpointsmeteorology object
+  res <- SpatialPointsMeteorology(
     points = user_topo,
-    verbose = FALSE
+    data = res_vec,
+    dates = interpolator@dates
   )
   
   return(res)
