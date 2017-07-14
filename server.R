@@ -8,6 +8,7 @@ library(htmltools)
 library(dygraphs)
 library(xts)
 library(ncdf4)
+library(mapview)
 
 # load needed data and functions
 load('Data/stations_data.RData')
@@ -125,6 +126,10 @@ function(input, output, session) {
       addProviderTiles(providers$OpenStreetMap,
                        group = 'OSM') %>%
       addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+      addCircleMarkers(data = user_coords$df,
+                       radius = 3, color = 'red',
+                       label = 'User coordinates',
+                       group = 'User') %>%
       addCircleMarkers(data = stations_data,
                        radius = 3, color = 'yellow',
                        label = ~htmlEscape(paste(st_network, St_Id,
@@ -132,11 +137,12 @@ function(input, output, session) {
                        group = 'Stations') %>%
       addLayersControl(
         baseGroups = c('Imagery', 'OSM', 'Toner Lite'),
-        overlayGroups = c('Stations'),
+        overlayGroups = c('User', 'Stations'),
         position = 'bottomright',
         options = layersControlOptions(collapse = FALSE)
       ) %>%
-      hideGroup("Stations")
+      hideGroup("Stations") %>%
+      addMouseCoordinates(style = 'basic')
   })
   
   # dygraph outputs
