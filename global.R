@@ -285,6 +285,13 @@ historical_points_mode_process <- function(user_df, user_dates,
   
   # subset by the user dates
   datevec <- as.Date(user_dates)[[1]]:as.Date(user_dates)[[2]]
+  datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
+  
+  ## workaround issue 3
+  if (length(datevec) == 1) {
+    datevec <- c(datevec[[1]] - 1, datevec, datevec[[1]] + 1)
+  }
+  
   interpolator <- subsample(interpolator, dates = as.Date(datevec))
   
   # STEP 2 BUILD THE TOPOGRAPHY OBJECT
