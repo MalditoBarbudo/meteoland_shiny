@@ -244,24 +244,21 @@ current_points_mode_process <- function(user_df, user_dates,
       )
     }
     
-    # interpolation, but storing only the data
+    # interpolation, but storing only the data trimmed for the days selected by
+    # the user
     res_vec[[i]] <- interpolationpoints(
       object = interpolator,
       points = user_topo[i,],
       verbose = FALSE
-    )@data[[1]]
+    )@data[[1]][-c(1:15), ] ## OJO, 15 ESTA FIJADO
   }
   
   # now we build the spatialpointsmeteorology object
   res <- SpatialPointsMeteorology(
     points = user_topo,
     data = res_vec,
-    dates = interpolator@dates
+    dates = interpolator@dates[-c(1:15)] ## OJO, 15 ESTA FIJADO
   )
-  
-  # trim from the results the days added to the beggining for interpolation
-  # purposes
-  # res <- subsample(res, dates = datevec[user_dates[[1]]:user_dates[[2]]])
   
   return(res)
 }
