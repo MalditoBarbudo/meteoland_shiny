@@ -345,6 +345,13 @@ historical_points_mode_process <- function(user_df, user_dates,
 }
 
 ################################################################################
+# Projection points mode
+
+# projection_points_mode_process <- function() {
+#   
+# }
+
+################################################################################
 # Download button functions. This functions check for the mode selected by the
 # user and generate the data file and filename accordingly.
 
