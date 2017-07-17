@@ -146,7 +146,7 @@ current_points_mode_process <- function(user_df, user_dates,
   stations_elevation <- day_data[[1]]$elevation
   stations_slope <- rep(0, length(stations_elevation))
   stations_aspect <- rep(0, length(stations_elevation))
-  stations_coords <- cbind(day_data[[1]]$coords.x1, day_data[[2]]$coords.x2)
+  stations_coords <- cbind(day_data[[1]]$coords.x1, day_data[[1]]$coords.x2)
   stations_coords_sp <- SpatialPoints(
     stations_coords, CRS("+proj=longlat +datum=WGS84")
   )
@@ -258,6 +258,10 @@ current_points_mode_process <- function(user_df, user_dates,
     data = res_vec,
     dates = interpolator@dates
   )
+  
+  # trim from the results the days added to the beggining for interpolation
+  # purposes
+  # res <- subsample(res, dates = datevec[user_dates[[1]]:user_dates[[2]]])
   
   return(res)
 }
