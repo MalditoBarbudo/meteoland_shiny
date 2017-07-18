@@ -214,13 +214,21 @@ function(input, output, session) {
   })
   
   # topography info
-  output$topo_info <- renderText({
+  output$topo_info <- renderUI({
     
     # get the topo
     topography <- getTopographyObject(user_coords$df)@data[as.numeric(input$coord_vis),]
-    paste0(' Elevation = ', topography$elevation, ' m. ',
-           ' Slope = ', round(topography$slope, 1), ' degrees. ',
-           ' Aspect = ', round(topography$aspect, 1), ' degrees from North')
+    
+    # get the text
+    topo_text <- list(paste0('Elevation = ',
+                             round(topography$elevation, 2), ' m.'),
+                      paste0('Slope = ',
+                             round(topography$slope, 2), ' degrees.'),
+                      paste0('Aspect = ',
+                             round(topography$aspect, 2), ' degrees from North.'))
+    
+    # return the texts
+    lapply(topo_text, tags$p)
   })
   
   ##### Current mode coordinates selection #####

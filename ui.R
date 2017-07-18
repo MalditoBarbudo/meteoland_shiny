@@ -256,7 +256,9 @@ navbarPage(
             ),
             
             # topography info
-            textOutput('topo_info')
+            h4('Selected point topographic info:'),
+            
+            htmlOutput('topo_info')
           )
         )
       )
