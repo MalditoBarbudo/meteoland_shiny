@@ -79,6 +79,8 @@ function(input, output, session) {
 
     # projection mode inputs
     if (input$mode_sel == 'Projection') {
+      
+      label_proj <- p('Select the future scenario:')
 
       # climate scenario selector. We divide it in two parts, the regional
       # climatic model and the representative concentration pathway
@@ -86,7 +88,7 @@ function(input, output, session) {
         style = "display: inline-block;vertical-align:top; width: 130px;",
         selectInput(
           'rcm',
-          label = 'Regional Climate Model',
+          label = 'Reg. Clim. Model',
           choices = c(
             '',
             'CCLM4-8-17',
@@ -99,7 +101,7 @@ function(input, output, session) {
         style = "display: inline-block;vertical-align:top; width: 130px;",
         selectInput(
           'rcp',
-          label = 'Representative Concentration Pathway',
+          label = 'Rep. Conc. Pathway',
           choices = c(
             '',
             'rcp4.5',
@@ -109,6 +111,7 @@ function(input, output, session) {
       )
 
       # update tag list
+      inputTagList <- tagAppendChild(inputTagList, label_proj)
       inputTagList <- tagAppendChild(inputTagList, rcm)
       inputTagList <- tagAppendChild(inputTagList, rcp)
     }
@@ -188,7 +191,10 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('MeanTemperature', 'MaxTemperature', 'MinTemperature')],
-                   order.by = interpolated_df$Date), group = 'results')
+                   order.by = interpolated_df$Date), group = 'results') %>%
+      dyOptions(colors = c('#26A65B', '#F22613', '#1F3A93')) %>%
+      dyLegend(show = 'onmouseover', hideOnMouseOut = TRUE, width = 600) %>%
+      dyAxis("y", label = "Temperature [°C]")
   })
   
   # humidity panel
@@ -199,7 +205,10 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('MeanRelativeHumidity', 'MaxRelativeHumidity', 'MinRelativeHumidity')],
-                   order.by = interpolated_df$Date), group = 'results')
+                   order.by = interpolated_df$Date), group = 'results') %>%
+      dyOptions(colors = c('#26A65B', '#F22613', '#1F3A93')) %>%
+      dyLegend(show = 'onmouseover', hideOnMouseOut = TRUE, width = 700) %>%
+      dyAxis("y", label = "Rel. Humidity [%]")
   })
   
   # precipitation and PET panel
@@ -210,7 +219,12 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('PET', 'Precipitation')],
-                   order.by = interpolated_df$Date), group = 'results')
+                   order.by = interpolated_df$Date), group = 'results') %>%
+      dyOptions(colors = c('#F22613', '#1F3A93')) %>%
+      dyLegend(show = 'onmouseover', hideOnMouseOut = TRUE, width = 400) %>%
+      dySeries("Precipitation", axis = 'y2') %>%
+      dyAxis("y2", label = "Precipitation [mm]") %>%
+      dyAxis("y", label = "PET [??]")
   })
   
   # topography info
