@@ -102,8 +102,8 @@ function(input, output, session) {
           label = 'Representative Concentration Pathway',
           choices = c(
             '',
-            'RCP_4.5',
-            'RCP_8'
+            'rcp4.5',
+            'rcp8.5'
           )
         )
       )
@@ -307,6 +307,17 @@ function(input, output, session) {
         interpolated_data <- historical_points_mode_process(
           user_df = user_coords$df,
           user_dates = input$date_range_historical,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # projection points mode
+      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points') {
+        
+        interpolated_data <- projection_points_mode_process(
+          user_df = user_coords$df,
+          rcm = input$rcm,
+          rcp = input$rcp,
           updateProgress = updateProgress
         )
       }

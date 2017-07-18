@@ -347,9 +347,100 @@ historical_points_mode_process <- function(user_df, user_dates,
 ################################################################################
 # Projection points mode
 
-# projection_points_mode_process <- function() {
-#   
-# }
+projection_points_mode_process <- function(user_df, rcm, rcp,
+                                           updateProgress = NULL) {
+  
+  # STEP 1 BUILD THE INTERPOLATOR
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.05
+    )
+  }
+  
+  # dates proj
+  dates_interp <- c('1976-01-01', '2010-12-31')
+  
+  # lets build the interpolator, this can take a while
+  # we need also a new progress object for the internal progress of
+  # the interpolator
+  # Create a Progress object
+  progress_int <- shiny::Progress$new()
+  progress_int$set(message = "Interpolating data", value = 0)
+  # Close the progress when this reactive exits (even if there's an error)
+  on.exit(progress_int$close())
+  
+  updateProgress_int <- function(value = NULL, detail = NULL, n_coords = NULL) {
+    if (is.null(value)) {
+      value <- progress_int$getValue()
+      value <- value + ((progress_int$getMax() - value) / n_coords)
+    }
+    
+    progress_int$set(value = value, detail = detail)
+  }
+  
+  interpolator <- historical_points_mode_process(user_df, dates_interp,
+                                                 updateProgress = updateProgress_int)
+  
+  # STEP 2 BUILD THE UNCORRECTED DATA
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the projection data',
+      value = 0.75
+    )
+  }
+  
+  # folder & files paths
+  dir_path <- file.path('/', 'run', 'user', '1000', 'gvfs',
+                        'smb-share:server=10.1.2.10,share=informed',
+                        'Catalonia')
+  
+  hist_pred_path <- file.path(dir_path, rcm, 'historical')
+  future_pred_path <- file.path(dir_path, rcm, rcp)
+  
+  # get the metadata
+  hist_pred <- read.table(file.path(hist_pred_path, 'MP_Cat_corr.txt'),
+                          sep = '\t', header = TRUE)
+  hist_pred$dir <- hist_pred_path
+  
+  future_pred <- read.table(file.path(future_pred_path, 'MP_Cat_corr.txt'),
+                            sep = '\t', header = TRUE)
+  future_pred$dir <- future_pred_path
+  
+  spatial_points_projs <- SpatialPoints(hist_pred[,c('lon', 'lat')],
+                                        CRS('+proj=longlat +datum=WGS84'))
+  
+  # build the uncorrected data
+  uncorrected <- MeteorologyUncorrectedData(
+    spatial_points_projs,
+    hist_pred[, c('dir', 'filename')],
+    future_pred[, c('dir', 'filename')],
+    seq(as.Date('2006-01-01'), as.Date('2100-12-31'), by = 'day')
+  )
+  
+  # get the topo
+  topo <- getTopographyObject(user_df)@data
+  
+  # STEP 3 MAKE THE CORRECTION
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Performing the correction',
+      value = 0.80
+    )
+  }
+  res <- correctionpoints(uncorrected, interpolator, topo,
+                          verbose = FALSE)
+  
+  
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Finishing the process',
+      value = 0.99
+    )
+  }
+  return(res)
+
+}
 
 ################################################################################
 # Download button functions. This functions check for the mode selected by the
@@ -357,8 +448,8 @@ historical_points_mode_process <- function(user_df, user_dates,
 
 filename_function <- function(input, data) {
   
-  # current & historical points modes
-  if (input$mode_sel %in% c('Current', 'Historical') & input$point_grid_sel == 'Points') {
+  # points modes
+  if (input$mode_sel %in% c('Current', 'Historical', 'Projection') & input$point_grid_sel == 'Points') {
     
     # check if there is one or more coordinates provided by the user:
     if (length(data@data) > 1) {
@@ -375,8 +466,8 @@ filename_function <- function(input, data) {
 
 content_function <- function(input, data, file) {
   
-  # current points mode
-  if (input$mode_sel %in% c('Current', 'Historical') & input$point_grid_sel == 'Points') {
+  # points mode
+  if (input$mode_sel %in% c('Current', 'Historical', 'Projection') & input$point_grid_sel == 'Points') {
     
     # check if there is one or more coordinates provided by the user:
     if (length(data@data) > 1) {
