@@ -188,7 +188,7 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('MeanTemperature', 'MaxTemperature', 'MinTemperature')],
-                   order.by = interpolated_df$Date))
+                   order.by = interpolated_df$Date), group = 'results')
   })
   
   # humidity panel
@@ -199,7 +199,7 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('MeanRelativeHumidity', 'MaxRelativeHumidity', 'MinRelativeHumidity')],
-                   order.by = interpolated_df$Date))
+                   order.by = interpolated_df$Date), group = 'results')
   })
   
   # precipitation and PET panel
@@ -210,7 +210,7 @@ function(input, output, session) {
     
     # plot the data
     dygraph(as.xts(interpolated_df[,c('PET', 'Precipitation')],
-                   order.by = interpolated_df$Date))
+                   order.by = interpolated_df$Date), group = 'results')
   })
   
   # topography info
