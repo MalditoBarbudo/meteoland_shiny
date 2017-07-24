@@ -14,7 +14,7 @@ library(shinythemes)
 navbarPage(
   title = 'meteoland R package',
   id = 'navbar_meteoland',
-  theme = shinytheme('simplex'),
+  theme = shinytheme('sandstone'),
   
   # About tab (tabwith r package description, disclaimer and so on...)
   tabPanel(

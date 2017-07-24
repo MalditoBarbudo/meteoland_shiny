@@ -327,7 +327,7 @@ function(input, output, session) {
             session,
             inputId = 'latitude',
             label = 'Latitude',
-            value = user_coords$df$lat[1]
+            value = round(user_coords$df$lat[1], 4)
           )
           
           # update Longitude
@@ -335,7 +335,7 @@ function(input, output, session) {
             session,
             inputId = 'longitude',
             label = 'Longitude',
-            value = user_coords$df$lng[1]
+            value = round(user_coords$df$lng[1], 4)
           )
           
           # update Latitude bottom
@@ -343,7 +343,7 @@ function(input, output, session) {
             session,
             inputId = 'latitude_bottom',
             label = 'Latitude bottom right',
-            value = user_coords$df$lat[2]
+            value = round(user_coords$df$lat[2], 4)
           )
           
           # update Longitude bottom
@@ -351,7 +351,7 @@ function(input, output, session) {
             session,
             inputId = 'longitude_bottom',
             label = 'Longitude bottom right',
-            value = user_coords$df$lng[2]
+            value = round(user_coords$df$lng[2], 4)
           )
         }
       }
