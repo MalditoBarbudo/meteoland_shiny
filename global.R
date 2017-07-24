@@ -450,6 +450,12 @@ current_grid_mode_process <- function(user_coords, user_dates,
                                       updateProgress = NULL) {
   
   # STEP 1 SUBSETTING THE GRID TO GET THE TOPO
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Obtaining grid topography',
+      value = 0.05
+    )
+  }
   
   # load the topography info for the grid (in this case we cheat a little, as
   # we are gonna treat the grid cells as points)
@@ -505,11 +511,17 @@ current_grid_mode_process <- function(user_coords, user_dates,
   
   out_of_bounds <- user_grid_points[which(
     !(
-      paste(user_grid_points@coords[,1], user_grid_points@coords[,2], sep='-') %in% paste(user_topo_sp@coords[,1], user_topo_sp@coords[,2], sep='-')
+      paste(user_grid_points@coords[,1], user_grid_points@coords[,2], sep = '-') %in% paste(user_topo_sp@coords[,1], user_topo_sp@coords[,2], sep = '-')
     )
   ), ]
   
   # STEP 2 PREPARING THE INTERPOLATOR
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.10
+    )
+  }
   
   # get the default parameters for the MetereologyInterpolationData object
   params <- defaultInterpolationParams()
@@ -636,6 +648,15 @@ current_grid_mode_process <- function(user_coords, user_dates,
   # loop to iterate between coordinates and perform the interpolation
   for (i in 1:length(user_grid_points@coords[,1])) {
     
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Processing grid cell ', i, ' of ',
+                        length(user_grid_points@coords[,1])),
+        n_coords = length(user_grid_points@coords[,1]),
+        max_val = 0.80
+      )
+    }
+    
     grid_coordinate <- paste(user_grid_points@coords[i,1],
                              user_grid_points@coords[i,2],
                              sep = '-')
@@ -662,8 +683,17 @@ current_grid_mode_process <- function(user_coords, user_dates,
   )
   
   # we need to transform the spatialpoints to spatialgrid
+  # progress
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.81
+    )
+  }
+  
   # extract the dates data frames
   res_extracted <- extractpointdates(res, res@dates)
+  
   # create a list with the dates dataframes
   res_data_list <- vector('list', length(res_extracted))
   for (i in 1:length(res_extracted)) {
@@ -676,6 +706,14 @@ current_grid_mode_process <- function(user_coords, user_dates,
     data = res_data_list,
     dates = res@dates
   )
+  
+  # progress
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.99
+    )
+  }
   
   return(res_grid)
   
@@ -700,7 +738,10 @@ filename_function <- function(input, data) {
     }
   }
   
-  # other modes will be here when developed
+  # grid modes
+  if (input$mode_sel %in% c('Current') & input$point_grid_sel == 'Grid') {
+    return('meteoland_output.nc')
+  }
 }
 
 content_function <- function(input, data, file) {
@@ -730,5 +771,8 @@ content_function <- function(input, data, file) {
     }
   }
   
-  # other modes logic will be here
+  # grid modes
+  # if (input$mode_sel %in% c('Current') & input$point_grid_sel == 'Grid') {
+  #   writemeteorologygrid(data, )
+  # }
 }

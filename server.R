@@ -154,24 +154,63 @@ function(input, output, session) {
   observe({
     # input to trigger the update
     if (input$process_button > 0) {
-      # update the selector. We use isolate to avoid the crash of the app if the
-      # user go back and press the reset button
-      isolate({
-        updateRadioButtons(
-          session,
-          inputId = 'coord_vis',
-          label = 'Select a coordinate pair to previsualize the data',
-          choiceNames = paste(round(user_coords$df$lat, 2),
-                              round(user_coords$df$lng, 2), sep = ' / '),
-          choiceValues = row.names(user_coords$df)
-        )
+      
+      # In case of points, we update the radioButtons input for coordinate
+      # selection
+      if (input$point_grid_sel == 'Points') {
         
+        # change the active tab to the output tab
         updateTabsetPanel(
           session,
           inputId = 'shiny_tabs',
           selected = 'Data output'
         )
-      })
+        
+        # update the selector. We use isolate to avoid the crash of the app if the
+        # user go back and press the reset button
+        isolate({
+          updateRadioButtons(
+            session,
+            inputId = 'coord_vis',
+            label = 'Select a coordinate pair to previsualize the data',
+            choiceNames = paste(round(user_coords$df$lat, 2),
+                                round(user_coords$df$lng, 2), sep = ' / '),
+            choiceValues = row.names(user_coords$df)
+          )
+        })
+      } else {
+        
+        # in case of grid we have to update the selectors for date and variable
+        isolate({
+          
+          # change the active tab to the output tab
+          updateTabsetPanel(
+            session,
+            inputId = 'shiny_tabs',
+            selected = 'Data output'
+          )
+          
+          # variable names in the processed data
+          grid_var_names <- names(interpolated_data()@data[[1]][-1])
+          grid_dates <- as.character(interpolated_data()@dates)
+          
+          # update the var selector
+          updateSelectInput(
+            session,
+            inputId = 'grid_var_sel',
+            label = 'Select a variable to visualize',
+            choices = grid_var_names
+          )
+          
+          # update the date selector
+          updateDateInput(
+            session,
+            inputId = 'grid_date_sel',
+            value = grid_dates[1],
+            min = grid_dates[1], max = tail(grid_dates, 1)
+          )
+        })
+      }
     }
   })
   
@@ -246,7 +285,18 @@ function(input, output, session) {
     lapply(topo_text, tags$p)
   })
   
-  ##### Current mode coordinates selection #####
+  # output for grid mode
+  output$grid_plot <- renderPlot({
+    
+    # data and dates
+    interpolated_df <- interpolated_data()
+    interpolated_dates <- as.character(interpolated_df@dates)
+    
+    # plot
+    spplot(interpolated_df,
+           which(interpolated_dates == input$grid_date_sel), # date
+           input$grid_var_sel) # variable
+  })
   
   # observe event to record the map clicks and append the coordinates clicked
   # to a data frame of coordinates
@@ -305,10 +355,11 @@ function(input, output, session) {
       # Close the progress when this reactive exits (even if there's an error)
       on.exit(progress$close())
       
-      updateProgress <- function(value = NULL, detail = NULL, n_coords = NULL) {
+      updateProgress <- function(value = NULL, detail = NULL,
+                                 n_coords = NULL, max_val = progress$getMax()) {
         if (is.null(value)) {
           value <- progress$getValue()
-          value <- value + ((progress$getMax() - value) / n_coords)
+          value <- value + ((max_val - value) / n_coords)
         }
         
         progress$set(value = value, detail = detail)
@@ -349,7 +400,10 @@ function(input, output, session) {
       if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid') {
         
         interpolated_data <- current_grid_mode_process(
-          user_coords = user_coords$df,
+          user_coords = data.frame(
+            x = c(input$longitude, input$longitude_bottom),
+            y = c(input$latitude, input$latitude_bottom)
+          ),
           user_dates = input$date_range_current,
           updateProgress = updateProgress
         )

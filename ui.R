@@ -215,22 +215,42 @@ navbarPage(
           # panels column
           column(
             width = 9,
-            # dygraphs
-            ## temperature
-            wellPanel(
-              h4('Temperature'),
-              dygraphOutput('temperature', height = '350px')
+            
+            # conditional panel in case of points (with points we show the
+            # dygraphs for temp, hum and prec)
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Points'",
+              
+              # dygraphs
+              ## temperature
+              wellPanel(
+                h4('Temperature'),
+                dygraphOutput('temperature', height = '350px')
+              ),
+              ## humidity
+              wellPanel(
+                h4('Relative Humidity'),
+                dygraphOutput('humidity', height = '350px')
+              ),
+              ## prec & PET
+              wellPanel(
+                h4('Precipitation & PET'),
+                dygraphOutput('prec_and_pet', height = '350px')
+              )
             ),
-            ## humidity
-            wellPanel(
-              h4('Relative Humidity'),
-              dygraphOutput('humidity', height = '350px')
-            ),
-            ## prec & PET
-            wellPanel(
-              h4('Precipitation & PET'),
-              dygraphOutput('prec_and_pet', height = '350px')
+            
+            # conditional panel in case of grid (with grid we show the grid
+            # for the selected day and variable)
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Grid'",
+              
+              # spplot output
+              wellPanel(
+                h4('Grid Plot'),
+                plotOutput('grid_plot', height = '400px')
+              )
             )
+            
           ),
           
           # button and selector column
@@ -246,19 +266,45 @@ navbarPage(
             # a little space
             br(), br(),
             
-            # coordinate pair selector code
-            radioButtons(
-              inputId = 'coord_vis',
-              label = 'Select a coordinate pair to previsualize the data',
-              choices = character(0), # empty until user select coordinates
-              inline = TRUE,
-              selected = character(0)
+            # Conditional panel for points (with points we show the
+            # radioButtons to select the coordinates to previsualize, and the 
+            # topo info)
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Points'",
+              
+              # coordinate pair selector code
+              radioButtons(
+                inputId = 'coord_vis',
+                label = 'Select a coordinate pair to previsualize the data',
+                choices = character(0), # empty until user select coordinates
+                inline = TRUE,
+                selected = character(0)
+              ),
+              
+              # topography info
+              h4('Selected point topographic info:'),
+              
+              htmlOutput('topo_info')
             ),
             
-            # topography info
-            h4('Selected point topographic info:'),
-            
-            htmlOutput('topo_info')
+            # conditional panel for grid (with grid we show a variable selector
+            # and a date selector)
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Grid'",
+              
+              # variable input
+              selectInput(
+                inputId = 'grid_var_sel',
+                label = 'Select a variable to visualize',
+                choices = character(0) # empty until grid is processed
+              ),
+              
+              # date input (empty until grid is processed)
+              dateInput(
+                inputId = 'grid_date_sel',
+                label = 'Select a date to visualize'
+              )
+            )
           )
         )
       )
