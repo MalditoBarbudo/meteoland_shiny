@@ -159,16 +159,17 @@ function(input, output, session) {
       # selection
       if (input$point_grid_sel == 'Points') {
         
-        # change the active tab to the output tab
-        updateTabsetPanel(
-          session,
-          inputId = 'shiny_tabs',
-          selected = 'Data output'
-        )
-        
         # update the selector. We use isolate to avoid the crash of the app if the
         # user go back and press the reset button
         isolate({
+          
+          # change the active tab to the output tab
+          updateTabsetPanel(
+            session,
+            inputId = 'shiny_tabs',
+            selected = 'Data output'
+          )
+          
           updateRadioButtons(
             session,
             inputId = 'coord_vis',
@@ -179,7 +180,6 @@ function(input, output, session) {
           )
         })
       } else {
-        
         # in case of grid we have to update the selectors for date and variable
         isolate({
           
@@ -303,12 +303,59 @@ function(input, output, session) {
   observeEvent(
     eventExpr = input$map_click,
     handlerExpr = {
-      # collect only the coordinates on mouse click
-      coord_clicked <- as.data.frame(input$map_click)[,1:2]
-      # we need to limit the coord list to 10:
-      if (length(user_coords$df[,1]) < 10) {
-        user_coords$df <<- rbind(user_coords$df, coord_clicked)
+      
+      # points mode
+      if (input$point_grid_sel == 'Points') {
+        # collect only the coordinates on mouse click
+        coord_clicked <- as.data.frame(input$map_click)[,1:2]
+        # we need to limit the coord list to 10:
+        if (length(user_coords$df[,1]) < 10) {
+          user_coords$df <<- rbind(user_coords$df, coord_clicked)
+        }
       }
+      
+      # grid mode
+      if (input$point_grid_sel == 'Grid') {
+        # collect only the coordinates on mouse click
+        coord_clicked <- as.data.frame(input$map_click)[,1:2]
+        user_coords$df <<- rbind(user_coords$df, coord_clicked)
+        # now we update the inputs for latitude and longitude (upper and
+        # bottom)
+        if (length(user_coords$df[,1]) < 3) {
+          # update Latitude
+          updateNumericInput(
+            session,
+            inputId = 'latitude',
+            label = 'Latitude',
+            value = user_coords$df$lat[1]
+          )
+          
+          # update Longitude
+          updateNumericInput(
+            session,
+            inputId = 'longitude',
+            label = 'Longitude',
+            value = user_coords$df$lng[1]
+          )
+          
+          # update Latitude bottom
+          updateNumericInput(
+            session,
+            inputId = 'latitude_bottom',
+            label = 'Latitude bottom right',
+            value = user_coords$df$lat[2]
+          )
+          
+          # update Longitude bottom
+          updateNumericInput(
+            session,
+            inputId = 'longitude_bottom',
+            label = 'Longitude bottom right',
+            value = user_coords$df$lng[2]
+          )
+        }
+      }
+      
     }
   )
   

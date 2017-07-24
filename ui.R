@@ -99,13 +99,13 @@ navbarPage(
             
             # latitude and longitude selector. To be able to show both in the same
             # line we must to rely in some html/css magic ;)
-            div(style = "display: inline-block;vertical-align:top; width: 135px;",
+            div(style = "display: inline-block;vertical-align:top; width: 145px;",
                 numericInput(
                   'latitude',
                   label = 'Latitude',
                   value = NA)),
             
-            div(style = "display: inline-block;vertical-align:top; width: 135px;",
+            div(style = "display: inline-block;vertical-align:top; width: 145px;",
                 numericInput(
                   'longitude',
                   label = 'Longitude',
@@ -117,13 +117,13 @@ navbarPage(
             conditionalPanel(
               condition = "input.point_grid_sel == 'Grid'",
               
-              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+              div(style = "display: inline-block;vertical-align:top; width: 145px;",
                   numericInput(
                     'latitude_bottom',
                     label = 'Latitude bottom right',
                     value = NA)),
               
-              div(style = "display: inline-block;vertical-align:top; width: 135px;",
+              div(style = "display: inline-block;vertical-align:top; width: 145px;",
                   numericInput(
                     'longitude_bottom',
                     label = 'Longitude bottom right',
