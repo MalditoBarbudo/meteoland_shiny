@@ -528,7 +528,7 @@ current_grid_mode_process <- function(user_coords, user_dates,
   
   # build the dates vector to read the metereology files
   user_dates <- as.Date(user_dates)
-  datevec <- (user_dates[[1]] - max(params$St_Precipitation, params$St_TemperatureRange)):user_dates[[2]]
+  datevec <- (head(user_dates, 1) - max(params$St_Precipitation, params$St_TemperatureRange)):tail(user_dates, 1)
   datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
   ndays <- length(datevec)
   
@@ -694,11 +694,21 @@ current_grid_mode_process <- function(user_coords, user_dates,
   # extract the dates data frames
   res_extracted <- extractpointdates(res, res@dates)
   
-  # create a list with the dates dataframes
-  res_data_list <- vector('list', length(res_extracted))
-  for (i in 1:length(res_extracted)) {
-    res_data_list[[i]] <- res_extracted[[i]]@data
+  # in the case of only one date
+  if (is(res_extracted, 'SpatialPointsDataFrame')) {
+    res_data_list <- list(data = res_extracted@data)
+  } else {
+    # create a list with the dates dataframes
+    res_data_list <- vector('list', length(res_extracted))
+    
+    for (i in 1:length(res_extracted)) {
+      res_data_list[[i]] <- res_extracted[[i]]@data
+    }
   }
+  
+  # we name the data list with the dates
+  names(res_data_list) <- as.character(res@dates)
+  
   # create the grid object
   res_grid <- SpatialGridMeteorology(
     grid = points2grid(res),
@@ -740,7 +750,14 @@ filename_function <- function(input, data) {
   
   # grid modes
   if (input$mode_sel %in% c('Current') & input$point_grid_sel == 'Grid') {
-    return('meteoland_output.nc')
+    
+    # check if there is more than one date
+    if (length(data@data) > 1) {
+      return('meteoland_output.zip')
+    } else {
+      # if only one date
+      return('meteoland_output.nc')
+    }
   }
 }
 
@@ -772,7 +789,24 @@ content_function <- function(input, data, file) {
   }
   
   # grid modes
-  # if (input$mode_sel %in% c('Current') & input$point_grid_sel == 'Grid') {
-  #   writemeteorologygrid(data, )
-  # }
+  if (input$mode_sel %in% c('Current') & input$point_grid_sel == 'Grid') {
+    
+    # check if more than one date
+    if (length(data@dates) > 1) {
+      
+      # if more than one date, we create a zip with nc files for each day
+      temporal_dir <- tempdir()
+      setwd(tempdir())
+      writemeteorologygridfiles(
+        object = data,
+        metadatafile = 'metadata_grid.txt'
+      )
+      
+      # create the zip
+      zip(file, dir(pattern = '*.nc$'))
+    } else {
+      writemeteorologygrid(data, data@dates[[1]], file)
+    }
+    
+  }
 }
