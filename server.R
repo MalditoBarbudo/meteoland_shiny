@@ -9,6 +9,7 @@ library(dygraphs)
 library(xts)
 library(ncdf4)
 library(mapview)
+library(rgeos)
 
 # load needed data and functions
 load('Data/stations_data.RData')
@@ -340,6 +341,16 @@ function(input, output, session) {
           user_df = user_coords$df,
           rcm = input$rcm,
           rcp = input$rcp,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # current grid mode
+      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid') {
+        
+        interpolated_data <- current_grid_mode_process(
+          user_coords = user_coords$df,
+          user_dates = input$date_range_current,
           updateProgress = updateProgress
         )
       }

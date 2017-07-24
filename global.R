@@ -443,6 +443,245 @@ projection_points_mode_process <- function(user_df, rcm, rcp,
 }
 
 ################################################################################
+# Current grid mode
+
+current_grid_mode_process <- function(user_coords, user_dates,
+                                      excludeRainFromStations = character(0),
+                                      updateProgress = NULL) {
+  
+  # STEP 1 SUBSETTING THE GRID TO GET THE TOPO
+  
+  # load the topography info for the grid (in this case we cheat a little, as
+  # we are gonna treat the grid cells as points)
+  load('Data/grid_as_points_topography.RData')
+  
+  # get the coords as an SpatialPoints object, we will need this to get the
+  # intersection of cells in the polygon created by the user
+  coords_topo <- SpatialPoints(grid_as_points_topography@coords,
+                               grid_as_points_topography@proj4string)
+  
+  # get and transform the user coords
+  coords_to_polygon <- data.frame(
+    x = c(user_coords$x[1], user_coords$x[2]),
+    y = c(user_coords$y[1], user_coords$y[2])
+  )
+  
+  coords_to_polygon_sp <- SpatialPoints(
+    coords_to_polygon,
+    CRS("+proj=longlat +datum=WGS84")
+  )
+  
+  coords_to_polygon_sp <- spTransform(
+    coords_to_polygon_sp,
+    CRS('+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+  )
+  
+  # create a SpatialPolygons object with the user provided coords for the grid
+  user_transf_polygon_coords <- data.frame(
+    x = c(coords_to_polygon_sp@coords[1,1], coords_to_polygon_sp@coords[1,1],
+          coords_to_polygon_sp@coords[2,1], coords_to_polygon_sp@coords[2,1]),
+    y = c(coords_to_polygon_sp@coords[1,2], coords_to_polygon_sp@coords[2,2],
+          coords_to_polygon_sp@coords[2,2], coords_to_polygon_sp@coords[1,2])
+  )
+  
+  user_polygon <- SpatialPolygons(
+    list(Polygons(
+      list(Polygon(
+        as.matrix(user_transf_polygon_coords)
+      )),
+      ID = 'user'
+    )),
+    proj4string = CRS('+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
+  )
+  
+  # now we do the subset with the rgeos package
+  user_topo <- grid_as_points_topography[which(rgeos::gIntersects(coords_topo, user_polygon, byid = TRUE)), ]
+  user_topo_sp <- SpatialPoints(user_topo@coords, proj4string = user_topo@proj4string)
+  
+  # but also we need the points outside the topo (i.e sea points, out of catalunya points...)
+  spatial_grid_from_user_topo <- SpatialGrid(points2grid(user_topo), user_topo@proj4string)
+  user_grid_points <- SpatialPoints(coordinates(spatial_grid_from_user_topo),
+                                    proj4string = spatial_grid_from_user_topo@proj4string)
+  
+  out_of_bounds <- user_grid_points[which(
+    !(
+      paste(user_grid_points@coords[,1], user_grid_points@coords[,2], sep='-') %in% paste(user_topo_sp@coords[,1], user_topo_sp@coords[,2], sep='-')
+    )
+  ), ]
+  
+  # STEP 2 PREPARING THE INTERPOLATOR
+  
+  # get the default parameters for the MetereologyInterpolationData object
+  params <- defaultInterpolationParams()
+  
+  # build the dates vector to read the metereology files
+  user_dates <- as.Date(user_dates)
+  datevec <- (user_dates[[1]] - max(params$St_Precipitation, params$St_TemperatureRange)):user_dates[[2]]
+  datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
+  ndays <- length(datevec)
+  
+  # load the metereological files
+  day_data <- vector('list', ndays)
+  for (i in seq_along(datevec)) {
+    # files
+    day_data[[i]] <- readmeteorologypoint(
+      file.path('Data', 'DailyCAT', paste0(as.character(datevec[[i]]), '.txt'))
+    )
+    # codes
+    codes <- row.names(day_data[[i]])
+    # excluded codes
+    excodes <- codes[codes %in% excludeRainFromStations]
+    # NAs to excluded (apply quality check results)
+    day_data[[i]][excodes, 'Precipitation'] <- NA
+  }
+  
+  # get general info needed later
+  stations_codes <- row.names(day_data[[1]])
+  stations_elevation <- day_data[[1]]$elevation
+  stations_slope <- rep(0, length(stations_elevation))
+  stations_aspect <- rep(0, length(stations_elevation))
+  stations_coords <- cbind(day_data[[1]]$coords.x1, day_data[[1]]$coords.x2)
+  stations_coords_sp <- SpatialPoints(
+    stations_coords, CRS("+proj=longlat +datum=WGS84")
+  )
+  station_coords_utm <- spTransform(
+    stations_coords_sp,
+    CRS("+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
+  )
+  
+  stations_n <- length(stations_elevation)
+  
+  # reshape the data to build the MetereologyInterpolationData object
+  MinTemperature <- matrix(
+    NA, nrow = stations_n, ncol = ndays,
+    dimnames = list(stations_codes, as.character(datevec))
+  )
+  MaxTemperature <- MinTemperature
+  Precipitation <- MinTemperature
+  RelativeHumidity <- MinTemperature
+  Radiation <- MinTemperature
+  WindSpeed <- MinTemperature
+  WindDirection <- MinTemperature
+  
+  # fill the data
+  for (i in seq_along(datevec)) {
+    MinTemperature[,i] <- day_data[[i]][stations_codes, 'MinTemperature']
+    MaxTemperature[,i] <- day_data[[i]][stations_codes, 'MaxTemperature']
+    Precipitation[,i] <- day_data[[i]][stations_codes, 'Precipitation']
+    RelativeHumidity[,i] <- day_data[[i]][stations_codes, 'MeanRelativeHumidity']
+    Radiation[,i] <- day_data[[i]][stations_codes, 'Radiation']
+    WindSpeed[,i] <- day_data[[i]][stations_codes, 'WindSpeed']
+    WindDirection[,i] <- day_data[[i]][stations_codes, 'WindDirection']
+  }
+  
+  # Finally, we build the interpolator object
+  interpolator <- MeteorologyInterpolationData(
+    points = station_coords_utm,
+    elevation = stations_elevation,
+    slope = stations_slope,
+    aspect = stations_aspect,
+    MinTemperature = MinTemperature,
+    MaxTemperature = MaxTemperature,
+    Precipitation = Precipitation,
+    RelativeHumidity = RelativeHumidity,
+    Radiation = Radiation,
+    WindSpeed = WindSpeed,
+    WindDirection = WindDirection,
+    params = params
+  )
+  
+  # and set the parameters obtained in the calibration
+  load('Data/calibrations.RData')
+  interpolator@params$N_MinTemperature = tmin_cal$N
+  interpolator@params$alpha_MinTemperature = tmin_cal$alpha
+  interpolator@params$N_MaxTemperature = tmax_cal$N
+  interpolator@params$alpha_MaxTemperature = tmax_cal$alpha
+  interpolator@params$N_DewTemperature = tdew_cal$N
+  interpolator@params$alpha_DewTemperature = tdew_cal$alpha
+  interpolator@params$N_PrecipitationEvent = prec_cal$N
+  interpolator@params$alpha_PrecipitationEvent = prec_cal$alpha
+  interpolator@params$N_PrecipitationAmount = prec_cal$N
+  interpolator@params$alpha_PrecipitationAmount = prec_cal$alpha
+  rm(tmin_cal, tmax_cal, tdew_cal, prec_cal)
+  
+  # STEP 3 PERFORM THE INTERPOLATION ON THE GRID
+  
+  # we are gonna slice the user coordinates to be able to show the progress more
+  # dinamically:
+  
+  # vector to store the interpolated data for each coordinate
+  res_vec <- vector('list', length(user_grid_points@coords[,1]))
+  
+  # out and user coords to check if we have data (as strings, this makes easy
+  # to check if the point is in the stations grid)
+  out_of_bounds_coords <- paste(out_of_bounds@coords[,1], out_of_bounds@coords[,2], sep='-')
+  user_topo_coords <- paste(user_topo@coords[,1], user_topo@coords[,2], sep='-')
+  
+  # an empty data frame for those points out of bounds, with NAs
+  dummy_days <- interpolator@dates[-c(1:15)] ## OJO, 15 ESTA FIJADO
+  dummy_df <- data.frame(DOY = rep(NA, length(dummy_days)),
+                         MeanTemperature = rep(NA, length(dummy_days)),
+                         MinTemperature = rep(NA, length(dummy_days)),
+                         MaxTemperature = rep(NA, length(dummy_days)),
+                         Precipitation = rep(NA, length(dummy_days)),
+                         MeanRelativeHumidity = rep(NA, length(dummy_days)),
+                         MinRelativeHumidity = rep(NA, length(dummy_days)),
+                         MaxRelativeHumidity = rep(NA, length(dummy_days)),
+                         Radiation = rep(NA, length(dummy_days)),
+                         WindSpeed = rep(NA, length(dummy_days)),
+                         WindDirection = rep(NA, length(dummy_days)),
+                         PET = rep(NA, length(dummy_days)))
+  row.names(dummy_df) <- dummy_days
+  
+  # loop to iterate between coordinates and perform the interpolation
+  for (i in 1:length(user_grid_points@coords[,1])) {
+    
+    grid_coordinate <- paste(user_grid_points@coords[i,1],
+                             user_grid_points@coords[i,2],
+                             sep = '-')
+    
+    # check if point is out of bounds
+    if (grid_coordinate %in% out_of_bounds_coords) {
+      res_vec[[i]] <- dummy_df
+    } else {
+      # interpolation, but storing only the data trimmed for the days selected by
+      # the user
+      res_vec[[i]] <- interpolationpoints(
+        object = interpolator,
+        points = user_topo[which(user_topo_coords == grid_coordinate), ],
+        verbose = FALSE
+      )@data[[1]][-c(1:15), ] ## OJO, 15 ESTA FIJADO
+    }
+  }
+  
+  # now we build the spatialpointsmeteorology object
+  res <- SpatialPointsMeteorology(
+    points = user_grid_points,
+    data = res_vec,
+    dates = interpolator@dates[-c(1:15)] ## OJO, 15 ESTA FIJADO
+  )
+  
+  # we need to transform the spatialpoints to spatialgrid
+  # extract the dates data frames
+  res_extracted <- extractpointdates(res, res@dates)
+  # create a list with the dates dataframes
+  res_data_list <- vector('list', length(res_extracted))
+  for (i in 1:length(res_extracted)) {
+    res_data_list[[i]] <- res_extracted[[i]]@data
+  }
+  # create the grid object
+  res_grid <- SpatialGridMeteorology(
+    grid = points2grid(res),
+    proj4string = res@proj4string,
+    data = res_data_list,
+    dates = res@dates
+  )
+  
+  return(res_grid)
+  
+}
+
+################################################################################
 # Download button functions. This functions check for the mode selected by the
 # user and generate the data file and filename accordingly.
 
