@@ -299,10 +299,23 @@ navbarPage(
                 choices = character(0) # empty until grid is processed
               ),
               
-              # date input (empty until grid is processed)
-              dateInput(
-                inputId = 'grid_date_sel',
-                label = 'Select a date to visualize'
+              # date input (empty until grid is processed) and conditional on mode
+              # current
+              conditionalPanel(
+                condition = "input.mode_sel == 'Current'",
+                dateInput(
+                  inputId = 'grid_date_sel',
+                  label = 'Select a date to visualize'
+                )
+              ),
+              # projection
+              conditionalPanel(
+                condition = "input.mode_sel == 'Projection'",
+                selectInput(
+                  inputId = 'grid_date_sel',
+                  label = 'Select a date to visualize',
+                  choices = character(0)
+                )
               )
             )
           )

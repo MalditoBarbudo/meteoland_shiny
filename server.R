@@ -181,35 +181,73 @@ function(input, output, session) {
         })
       } else {
         # in case of grid we have to update the selectors for date and variable
-        isolate({
-          
-          # change the active tab to the output tab
-          updateTabsetPanel(
-            session,
-            inputId = 'shiny_tabs',
-            selected = 'Data output'
-          )
-          
-          # variable names in the processed data
-          grid_var_names <- names(interpolated_data()@data[[1]][-1])
-          grid_dates <- as.character(interpolated_data()@dates)
-          
-          # update the var selector
-          updateSelectInput(
-            session,
-            inputId = 'grid_var_sel',
-            label = 'Select a variable to visualize',
-            choices = grid_var_names
-          )
-          
-          # update the date selector
-          updateDateInput(
-            session,
-            inputId = 'grid_date_sel',
-            value = grid_dates[1],
-            min = grid_dates[1], max = tail(grid_dates, 1)
-          )
-        })
+        # depending also on the projection/historical/current mode
+        
+        # current
+        if (input$mode_sel == 'Current') {
+          isolate({
+            
+            # change the active tab to the output tab
+            updateTabsetPanel(
+              session,
+              inputId = 'shiny_tabs',
+              selected = 'Data output'
+            )
+            
+            # variable names in the processed data
+            grid_var_names <- names(interpolated_data()@data[[1]][-1])
+            grid_dates <- as.character(interpolated_data()@dates)
+            
+            # update the var selector
+            updateSelectInput(
+              session,
+              inputId = 'grid_var_sel',
+              label = 'Select a variable to visualize',
+              choices = grid_var_names
+            )
+            
+            # update the date selector
+            updateDateInput(
+              session,
+              inputId = 'grid_date_sel',
+              value = grid_dates[1],
+              min = grid_dates[1], max = tail(grid_dates, 1)
+            )
+          })
+        }
+        
+        # projection
+        if (input$mode_sel == 'Projection') {
+          isolate({
+            
+            # change the active tab to the output tab
+            updateTabsetPanel(
+              session,
+              inputId = 'shiny_tabs',
+              selected = 'Data output'
+            )
+            
+            # get the variables names
+            grid_var_names <- names(interpolated_data()$res_list)
+            
+            # update the var selector
+            updateSelectInput(
+              session,
+              inputId = 'grid_var_sel',
+              label = 'Select a variable to visualize',
+              choices = grid_var_names
+            )
+            
+            # update the date selector
+            updateSelectInput(
+              session,
+              inputId = 'grid_date_sel',
+              label = 'Select a date to visualize',
+              choices = seq(as.Date('2006-01-01'), as.Date('2100-12-01'),
+                            by = 'month')
+            )
+          })
+        }
       }
     }
   })
@@ -288,14 +326,48 @@ function(input, output, session) {
   # output for grid mode
   output$grid_plot <- renderPlot({
     
-    # data and dates
-    interpolated_df <- interpolated_data()
-    interpolated_dates <- as.character(interpolated_df@dates)
+    # current
+    if (input$mode_sel == 'Current') {
+      # data and dates
+      interpolated_df <- interpolated_data()
+      interpolated_dates <- as.character(interpolated_df@dates)
+      
+      # plot
+      spplot(interpolated_df,
+             which(interpolated_dates == input$grid_date_sel), # date
+             input$grid_var_sel) # variable
+    }
     
-    # plot
-    spplot(interpolated_df,
-           which(interpolated_dates == input$grid_date_sel), # date
-           input$grid_var_sel) # variable
+    # projection
+    if (input$mode_sel == 'Projection') {
+      
+      date_index <- which(
+        seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel
+      )
+      
+      # get the variable values array
+      var_values <- interpolated_data()$res_list[[input$grid_var_sel]][,,date_index]
+      
+      # create the data frame, but be careful, we need to invert the order in which
+      # the y coordinate is filled
+      data_df <- data.frame(
+        var = as.numeric(var_values[,ncol(var_values):1])
+      )
+      names(data_df) <- input$grid_var_sel
+      
+      data_list <- list(one = data_df)
+      names(data_list) <- input$grid_date_sel
+      
+      grid_sel <- points2grid(interpolated_data()$points_sel)
+      
+      grid_meteo <- SpatialGridMeteorology(
+        grid_sel,
+        data = data_list,
+        dates = as.Date(input$grid_date_sel)
+      )
+      
+      spplot(grid_meteo, input$grid_date_sel, input$grid_var_sel)
+    }
   })
   
   # observe event to record the map clicks and append the coordinates clicked
@@ -398,7 +470,7 @@ function(input, output, session) {
       # progress bar logic
       # Create a Progress object
       progress <- shiny::Progress$new()
-      progress$set(message = "Processing coordinates", value = 0)
+      progress$set(message = "Processing data", value = 0)
       # Close the progress when this reactive exits (even if there's an error)
       on.exit(progress$close())
       
@@ -453,6 +525,19 @@ function(input, output, session) {
           ),
           user_dates = input$date_range_current,
           updateProgress = updateProgress
+        )
+      }
+      
+      # projection grid mode
+      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Grid') {
+        interpolated_data <- projection_grid_mode_process(
+          user_coords = data.frame(
+            x = c(input$longitude, input$longitude_bottom),
+            y = c(input$latitude, input$latitude_bottom)
+          ),
+          rcm = input$rcm,
+          rcp = input$rcp,
+          updateProgress
         )
       }
       

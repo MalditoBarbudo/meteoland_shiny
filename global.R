@@ -730,6 +730,123 @@ current_grid_mode_process <- function(user_coords, user_dates,
 }
 
 ################################################################################
+# projection grid mode
+projection_grid_mode_process <- function(user_coords, rcm, rcp, updateProgress) {
+  
+  # STEP 1 OPEN THE CONN TO THE netCDF FILE
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Accesing to the interpolated data',
+      value = 0.05
+    )
+  }
+  
+  dir <- file.path('/', 'run', 'user', '1000', 'gvfs',
+                   'smb-share:server=serverprocess,share=miquel',
+                   'Datasets', 'Climate', 'Products', 'Pixels1k',
+                   'Projections', rcm, rcp)
+  file <- paste0(rcm, '_', gsub('\\.', '', rcp), '.nc')
+  
+  nc <- nc_open(file.path(dir, file))
+  
+  # STEP 2 CONVERT TO UTM THE USER COORDS
+  
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Converting user coordinates',
+      value = 0.1
+    )
+  }
+  
+  # convert to utm
+  # make a coordinates object from the data frame provided
+  coordinates(user_coords) <- ~x+y
+  
+  # add the projection string attribute
+  proj4string(user_coords) <- CRS("+proj=longlat +datum=WGS84")
+  
+  # transform the coordinates porjection to the correct projection
+  user_coords <- as.data.frame(spTransform(
+    user_coords,
+    CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
+  ))
+  
+  # STEP 3 SUBSET THE netCDF DATA
+  
+  # extract X and Y values from netCDF file
+  nc_x_coord_vals <- nc$dim$X$vals
+  nc_y_coord_vals <- nc$dim$Y$vals
+  
+  # index for X
+  x_dist_upper <- abs(nc_x_coord_vals - user_coords$x[1])
+  x_index_upper <- which.min(x_dist_upper)
+  
+  x_dist_bottom <- abs(nc_x_coord_vals - user_coords$x[2])
+  x_index_bottom <- which.min(x_dist_bottom)
+  
+  # index for Y
+  y_dist_upper <- abs(nc_y_coord_vals - user_coords$y[1])
+  y_index_upper <- which.min(y_dist_upper)
+  
+  y_dist_bottom <- abs(nc_y_coord_vals - user_coords$y[2])
+  y_index_bottom <- which.min(y_dist_bottom)
+  
+  # number of x and y values to get
+  x_index_length <- x_index_bottom - x_index_upper
+  y_index_length <- y_index_upper - y_index_bottom
+  
+  # stop if the grid is too big
+  if (x_index_length * y_index_length > 2500) {
+    stop('Grid too large to process. Must be less than 2500 km2')
+  }
+  
+  # get the var names
+  var_names <- names(nc$var)
+  # empty list for arrays for each var
+  res_list <- vector('list', length(var_names))
+  
+  # loop to retrieve each var data in an array
+  for (i in 1:length(var_names)) {
+    
+    # progress
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Processing variable ', i, ' of ',
+                        length(var_names), '(', var_names[i], ')'),
+        n_coords = length(var_names)
+      )
+    }
+    
+    res_list[[i]] <- ncvar_get(nc, var_names[i],
+                               start = c(x_index_upper, y_index_bottom, 1),
+                               count = c(x_index_length, y_index_length, -1))
+  }
+  # name the list with the var names
+  names(res_list) <- var_names
+  
+  # STEP 4 CREATE ALSO THE SPATIAL POINTS TO DRAW THE GRID IN THE VISUALIZATION
+  
+  # also, as here we have the indexes, we get the points to generate the grid
+  x = ncvar_get(nc, 'X', x_index_upper, x_index_length)
+  y = ncvar_get(nc, 'Y', y_index_bottom, y_index_length)
+  
+  points_sel <- SpatialPoints(
+    expand.grid(list(x = x, y = y))
+  )
+  
+  # create a list with the points and the data and return it
+  res <- list(points_sel = points_sel,
+              res_list = res_list,
+              x_vals = x,
+              y_vals = y)
+  
+  # close nc
+  nc_close(nc)
+  
+  return(res)
+}
+
+################################################################################
 # Download button functions. This functions check for the mode selected by the
 # user and generate the data file and filename accordingly.
 
@@ -758,6 +875,10 @@ filename_function <- function(input, data) {
       # if only one date
       return('meteoland_output.nc')
     }
+  }
+  
+  if (input$mode_sel %in% c('Projection') & input$point_grid_sel == 'Grid') {
+    return('meteoland_output.nc')
   }
 }
 
@@ -807,6 +928,43 @@ content_function <- function(input, data, file) {
     } else {
       writemeteorologygrid(data, data@dates[[1]], file)
     }
+    
+  }
+  
+  if (input$mode_sel %in% c('Projection') & input$point_grid_sel == 'Grid') {
+    
+    # create the nc file
+    dimX <- ncdim_def('X', 'meters', data$x_vals)
+    dimY <- ncdim_def('Y', 'meters', data$y_vals)
+    dimT <- ncdim_def("Time", "months", 1:1140)
+    
+    Precipitation <- ncvar_def('Precipitation', 'mm',
+                               list(dimX, dimY, dimT), NA)
+    MeanTemperature <- ncvar_def('MeanTemperature', 'Celsius degrees',
+                                 list(dimX, dimY, dimT), NA)
+    MaxTemperature <- ncvar_def('MaxTemperature', 'Celsius degrees',
+                                list(dimX, dimY, dimT), NA)
+    MinTemperature <- ncvar_def('MinTemperature', 'Celsius degrees',
+                                list(dimX, dimY, dimT), NA)
+    MeanRelativeHumidity <- ncvar_def('MeanRelativeHumidity', 'Percentage',
+                                      list(dimX, dimY, dimT), NA)
+    PET <- ncvar_def('PET', 'mm', list(dimX, dimY, dimT), NA)
+    
+    nc <- nc_create(
+      file,
+      list(Precipitation, MeanTemperature,
+           MaxTemperature, MinTemperature,
+           MeanRelativeHumidity, PET)
+    )
+    
+    for (var in names(data$res_list)) {
+      ncvar_put(
+        nc, var,
+        data$res_list[[var]]
+      )
+    }
+    
+    nc_close(nc)
     
   }
 }
