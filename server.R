@@ -231,7 +231,7 @@ function(input, output, session) {
             grid_var_names <- names(interpolated_data()$res_list)
             
             # update the var selector
-            updateSelectInput(
+            updateSelectizeInput(
               session,
               inputId = 'grid_var_sel',
               label = 'Select a variable to visualize',

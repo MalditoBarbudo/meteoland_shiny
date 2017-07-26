@@ -311,10 +311,11 @@ navbarPage(
               # projection
               conditionalPanel(
                 condition = "input.mode_sel == 'Projection'",
-                selectInput(
+                selectizeInput(
                   inputId = 'grid_date_sel',
                   label = 'Select a date to visualize',
-                  choices = character(0)
+                  choices = character(0),
+                  options = list(maxOptions = 1200)
                 )
               )
             )
