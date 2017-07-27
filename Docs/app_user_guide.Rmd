@@ -1,5 +1,5 @@
 ---
-title: "meteoland app user guide"
+title: "How to use the `meteoland` shiny app"
 output: pdf_document
 ---
 
@@ -7,4 +7,316 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Under contruction!!
+
 Here will be the super-useful user guide to the meteoland app, stay tuned!
+
+
+## General info
+
+This app is intended as an useful example of the `meteoland` package capabilities,
+and is limited to the Catalonian area, as the servers space is limited and we can
+not have all the station data from around the world.  
+If you want to interpolate metereological variables from another area yo can use
+the `meteoland` package, given that metereological data and/or climate model projections
+are available for you. See the package user guide to know how!  
+
+# Getting started
+
+## Selecting a mode
+
+Whatever you want to do, interpolate current year or historical dates,
+interpolate and downscale future projection based on climate models... we have
+a mode for you:
+
+  1. **Historical Points mode**  
+  1. **Current Points mode**  
+  1. **Projection Points mode**  
+  1. **Historical Grid mode**  
+  1. **Current Grid mode**  
+  1. **Projection Grid mode**
+
+\newpage
+
+## **Historical Points mode**
+
+In this mode you will be able to select up to ten points by coordinates
+(latitude and longitude) and a range of dates between 1976 and the last year
+(2016 at the moment of writing this guide) and retrieve the interpolated data
+from those points for that period, based on the available metereological stations
+data around the selected points.
+
+### Data input
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Historical` and `Points` in the left sidebar  
+  1. Introduce the starting and ending dates of the period of interest (if you
+     want to retrieve only one day, starting and ending date must be the same)  
+  1. Select the points, as coordinates. You can do this in two ways:
+      - Clicking in the map at the desired coordinates. You will see that 
+        clicked points are added to the `selected points` list  
+      - Filling the `Latitude` and `Longitude` boxes with the desired coordinates
+        and clicking in `Append coordinates` button. Again, you will see that the
+        `selected points` list will be updated  
+  1. If you want to clear the coordinates introduced, click the `Reset coordinates`
+     button. This will clear all coordinates and you will have to start again  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the coordinates and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the historical points mode](resources/historical_points_mode_01.png)
+
+### Data output
+
+After clicking the `Go` button, app view will change to the `DATA OUTPUT` tab,
+showing the progress of the interpolation process. Be warned that it can take
+a while to process the data, depending on the date range and the number of points.  
+When the process is finished, a visual report will appear in the `DATA OUTPUT`
+tab, showing the time series of the temperature, humidity, precipitation and
+PET values. You will be able to change between the selected points and also you
+can zoom in/out in the time series visualization. The topographic information
+of the point is also showed.  
+You can retrieve the processed data by clicking in the `Download` button. This
+will download a `zip` file containing the `txt` files with the data for each
+selected point.  
+
+![Progress dialogue](resources/historical_points_mode_02.png)  
+
+![Data output overview](resources/historical_points_mode_03.png)  
+
+### Limitations
+
+  1. Point selection limited to 10 points  
+  1. Dates range limited from 1976-01-01 to 2016-12-01
+
+Also, if you want all the historical period in ten different points, it will
+take some minutes to process the data, so you can slack off a little ;)
+
+![Ecologists working hard (modified from https://xkcd.com/303/)](resources/compiling.png)
+
+### What's happening behind the curtains?
+
+In this mode we load a calibrated dataset
+from all AEMET metereological stations (built with the
+`meteoland::interpolation.calibration` function) and interpolate the data for the
+coordinates selected using the `meteoland::interpolationpoints` function.
+For that we need both the stations and the points topographies, loaded as
+`SpatialTopographyPoints` objects.  
+
+\newpage
+
+## **Current Points mode**
+
+Here you will be able to interpolate data from the current year up to the actual
+date, based on the available metereological stations data around the selected
+points.  
+
+### Data input
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Current` and `Points` in the left sidebar  
+  1. Introduce the starting and ending dates of the period of interest (if you
+     want to retrieve only one day, starting and ending date must be the same)  
+  1. Select the points, as coordinates. You can do this in two ways:
+      - Clicking in the map at the desired coordinates. You will see that 
+        clicked points are added to the `selected points` list  
+      - Filling the `Latitude` and `Longitude` boxes with the desired coordinates
+        and clicking in `Append coordinates` button. Again, you will see that the
+        `selected points` list will be updated  
+  1. If you want to clear the coordinates introduced, click the `Reset coordinates`
+     button. This will clear all coordinates and you will have to start again  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the coordinates and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the current points mode](resources/current_points_mode_01.png)
+
+### Data output
+
+In this mode app view also will change to the `DATA OUTPUT` tab automatically after
+pressing the `Go` button. Usually this mode is faster in processing the data as
+the time span is one year as maximum (No slack off time in this mode).  
+When the process is finished a visual report similar to the one we saw for the
+previuos mode is presented, showing the time series of the temperature, humidity, precipitation and
+PET values. You will be able to change between the selected points and also you
+can zoom in/out in the time series visualization. The topographic information
+of the point is also showed.  
+You can retrieve the processed data by clicking in the `Download` button. This
+will download a `zip` file containing the `txt` files with the data for each
+selected point.  
+
+![Current points mode data output overview](resources/current_points_mode_02.png)
+
+### Limitations
+
+  1. Point selection limited to 10 points  
+  1. Dates ranges limited to the available current year dates
+
+### What's happening behind the curtains?
+
+Similar to the *Historical Points mode*, an interpolation object is created for
+the dates range provided, and the interpolation parameters are loaded (as they
+are pre-calculated). After that, the datta is interpolated using the
+`meteoland::interpolationpoints` function and the data is returned as a
+`SpatialMetereologyPoints` object to visualize.
+
+\newpage
+
+## **Projection Points mode**
+
+In this case data are interpolated and downscaled from coarse
+climate models projections (using both, historical and future data and including
+a statistical correction) to the selected points scale.  
+
+### Data input
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Projection` and `Points` in the left sidebar  
+  1. Select the desired combination of `Regional Climate Model` and
+     `Representative Concentration Pathway`. In this case there is no date
+     selection as all the future projection until 2100-12-01 is retrieved  
+  1. Select the points, as coordinates. You can do this in two ways:
+      - Clicking in the map at the desired coordinates. You will see that 
+        clicked points are added to the `selected points` list  
+      - Filling the `Latitude` and `Longitude` boxes with the desired coordinates
+        and clicking in `Append coordinates` button. Again, you will see that the
+        `selected points` list will be updated  
+  1. If you want to clear the coordinates introduced, click the `Reset coordinates`
+     button. This will clear all coordinates and you will have to start again  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the coordinates and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the projection points mode](resources/projection_points_mode_01.png)
+
+### Data output
+
+After pressing the `Go` button the view will change to the `DATA OUTPUT` tab
+automatically, whereas the progress of the interpolation and the correction is
+showed.  
+
+![Progress dialogue in the Projection Points mode](resources/projection_points_mode_02.png)
+
+When it is finished we can see the time series for the different variables
+predictions in the selected points. Again, you can zoom/unzoom to be able to
+inspect the data more closely. Topography info of the selected points is also
+shown. If all is ok the data can be downloaded clicking in the `Download` button
+resulting in a `zip` file containing `txt` files for each point.
+
+![Output data overview in the Projection Points mode](resources/projection_points_mode_03.png)
+
+### Limitations
+
+  1. Point selection limited to 10 points  
+  2. No dates range available, all period up to 2100-12-01 is provided
+
+As in the historical mode, processing the data can take several minutes, as all
+the future projection is processed. Time for slacking off again!
+
+### What's happening behind the curtains?
+
+Here the app is working really hard for you. First we build the interpolator
+object for the historical period as we did in the *Historical Points mode* to
+have a reference for the correction step. After that we build the future
+uncorrected data in a `MetereologicalUncorrectedData` object from the
+regional climate model and the representative pathway concentration combination
+selected and we retrieve the topography info for the selected points.
+By means of the `meteoland::correctionpoints` function the future projection is
+statistically corrected and the results are returned as a `SpatialMetereologyData`
+object to visualize it.
+
+\newpage
+
+## **Historical Grid mode**
+
+In this mode you will be able to interpolate a grid (rectangular area) in a
+range of dates between 1976 and the las year, based on the available metereological
+stations data inside and around (by a 30km buffer) the selected area.  
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Historical` and `Grid` in the left sidebar  
+  1. Introduce the starting and ending dates of the period of interest (if you
+     want to retrieve only one day, starting and ending date must be the same)  
+  1. Select the area, as a two coordinates pair, the upper left pair and the
+     bottom right pair describing the rectangle desired. You can do this in two
+     ways:
+      - Clicking in the map, first for the upper left limit and last for the
+        bottom right limit. Coordinates values will appear in the boxes
+      - Filling the both pairs of coordinates directly in the boxes  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the grid and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the historical grid mode](resources/historical_grid_mode_01.png)
+
+\newpage
+
+## **Current Grid Mode**
+
+Here you can interpolate data from the current year up to the actual date for
+a rectangular grid, based on the available metereological stations data inside
+and around (in a 30km buffer area) the selected area.  
+
+### Data input
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Current` and `Grid` in the left sidebar  
+  1. Introduce the starting and ending dates of the period of interest (if you
+     want to retrieve only one day, starting and ending date must be the same)  
+  1. Select the area, as a two coordinates pair, the upper left pair and the
+     bottom right pair describing the rectangle desired. You can do this in two
+     ways:
+      - Clicking in the map, first for the upper left limit and last for the
+        bottom right limit. Coordinates values will appear in the boxes
+      - Filling the both pairs of coordinates directly in the boxes  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the grid and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the current grid mode](resources/current_grid_mode_01.png)
+
+### Data output
+
+
+
+In this mode app view also will change to the `DATA OUTPUT` tab automatically after
+pressing the `Go` button. Usually this mode is faster in processing the data as
+the time span is one year as maximum (No slack off time in this mode).  
+When the process is finished a visual report similar to the one we saw for the
+previuos mode is presented, showing the time series of the temperature, humidity, precipitation and
+PET values. You will be able to change between the selected points and also you
+can zoom in/out in the time series visualization. The topographic information
+of the point is also showed.  
+You can retrieve the processed data by clicking in the `Download` button. This
+will download a `zip` file containing the `txt` files with the data for each
+selected point.  
+
+
+
+
+\newpage
+
+## **Projection Grid Mode**
+
+In this case data are interpolated and downscaled from coarse
+climate models projections (using both, historical and future data and including
+a statistical correction) to the selected grid scale (1km^2^).  
+
+  1. Go to the `USER INPUT` tab  
+  1. Select `Projection` and `Points` in the left sidebar  
+  1. Select the desired combination of `Regional Climate Model` and
+     `Representative Concentration Pathway`. In this case there is no date
+     selection as all the future projection until 2100-12-01 is retrieved  
+  1. Select the area, as a two coordinates pair, the upper left pair and the
+     bottom right pair describing the rectangle desired. You can do this in two
+     ways:
+      - Clicking in the map, first for the upper left limit and last for the
+        bottom right limit. Coordinates values will appear in the boxes
+      - Filling the both pairs of coordinates directly in the boxes  
+  1. If you want to clear the coordinates introduced, click the `Reset coordinates`
+     button. This will clear all coordinates and you will have to start again  
+  1. After you have introduced all the points, click in the `Go` button and the
+     app will start to process the coordinates and will show the results in the
+     `DATA OUTPUT` tab  
+
+![Introducing parameters in the projection grid mode](resources/projection_grid_mode_01.png)
