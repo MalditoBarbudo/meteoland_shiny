@@ -1,10 +1,10 @@
 ---
 title: "meteoland app user guide"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Here will be the fast user guide to the meteoland app, stay tuned!
+Here will be the super-useful user guide to the meteoland app, stay tuned!

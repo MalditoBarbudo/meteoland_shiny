@@ -52,11 +52,13 @@ navbarPage(
       tabPanel(
         title = 'App user guide', icon = icon('book'),
         
-        # alittle space
+        # a little space
         br(),
         
         # a nice document explaining how to use the app
-        includeMarkdown('Docs/app_user_guide.Rmd')
+        # includeMarkdown('Docs/app_user_guide.Rmd')
+        tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
+                    src = "app_user_guide.pdf#zoom=120")
       ),
       
       # user input tab
