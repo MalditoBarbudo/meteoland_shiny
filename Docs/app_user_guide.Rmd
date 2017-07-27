@@ -277,21 +277,7 @@ and around (in a 30km buffer area) the selected area.
 
 ### Data output
 
-
-
-In this mode app view also will change to the `DATA OUTPUT` tab automatically after
-pressing the `Go` button. Usually this mode is faster in processing the data as
-the time span is one year as maximum (No slack off time in this mode).  
-When the process is finished a visual report similar to the one we saw for the
-previuos mode is presented, showing the time series of the temperature, humidity, precipitation and
-PET values. You will be able to change between the selected points and also you
-can zoom in/out in the time series visualization. The topographic information
-of the point is also showed.  
-You can retrieve the processed data by clicking in the `Download` button. This
-will download a `zip` file containing the `txt` files with the data for each
-selected point.  
-
-
+After the `Go` button is pressed app change to the `DATA OUTPUT` tab. 
 
 
 \newpage
