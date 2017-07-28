@@ -149,6 +149,90 @@ function(input, output, session) {
       addMouseCoordinates(style = 'basic')
   })
   
+  # logic for the process button
+  interpolated_data <- eventReactive(
+    eventExpr = input$process_button,
+    valueExpr = {
+      # progress object
+      # progress bar logic
+      # Create a Progress object
+      progress <- shiny::Progress$new()
+      progress$set(message = "Processing data", value = 0)
+      # Close the progress when this reactive exits (even if there's an error)
+      on.exit(progress$close())
+      
+      updateProgress <- function(value = NULL, detail = NULL,
+                                 n_coords = NULL, max_val = progress$getMax()) {
+        if (is.null(value)) {
+          value <- progress$getValue()
+          value <- value + ((max_val - value) / n_coords)
+        }
+        
+        progress$set(value = value, detail = detail)
+      }
+      
+      # current points method
+      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
+        
+        interpolated_data <- current_points_mode_process(
+          user_df = user_coords$df,
+          user_dates = input$date_range_current,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # historical points mode
+      if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points') {
+        
+        interpolated_data <- historical_points_mode_process(
+          user_df = user_coords$df,
+          user_dates = input$date_range_historical,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # projection points mode
+      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points') {
+        
+        interpolated_data <- projection_points_mode_process(
+          user_df = user_coords$df,
+          rcm = input$rcm,
+          rcp = input$rcp,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # current grid mode
+      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid') {
+        
+        interpolated_data <- current_grid_mode_process(
+          user_coords = data.frame(
+            x = c(input$longitude, input$longitude_bottom),
+            y = c(input$latitude, input$latitude_bottom)
+          ),
+          user_dates = input$date_range_current,
+          updateProgress = updateProgress
+        )
+      }
+      
+      # projection grid mode
+      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Grid') {
+        interpolated_data <- projection_grid_mode_process(
+          user_coords = data.frame(
+            x = c(input$longitude, input$longitude_bottom),
+            y = c(input$latitude, input$latitude_bottom)
+          ),
+          rcm = input$rcm,
+          rcp = input$rcp,
+          updateProgress
+        )
+      }
+      
+      # return the interpolated data
+      return(interpolated_data)
+    }
+  )
+  
   # dygraph outputs
   # coord_pair selector update
   observe({
@@ -179,7 +263,9 @@ function(input, output, session) {
             choiceValues = row.names(user_coords$df)
           )
         })
-      } else {
+      }
+      
+      if (input$point_grid_sel == 'Grid') {
         # in case of grid we have to update the selectors for date and variable
         # depending also on the projection/historical/current mode
         
@@ -231,17 +317,17 @@ function(input, output, session) {
             grid_var_names <- names(interpolated_data()$res_list)
             
             # update the var selector
-            updateSelectizeInput(
+            updateSelectInput(
               session,
-              inputId = 'grid_var_sel',
+              inputId = 'grid_var_sel_proj',
               label = 'Select a variable to visualize',
               choices = grid_var_names
             )
             
             # update the date selector
-            updateSelectInput(
+            updateSelectizeInput(
               session,
-              inputId = 'grid_date_sel',
+              inputId = 'grid_date_sel_proj',
               label = 'Select a date to visualize',
               choices = seq(as.Date('2006-01-01'), as.Date('2100-12-01'),
                             by = 'month')
@@ -323,51 +409,44 @@ function(input, output, session) {
     lapply(topo_text, tags$p)
   })
   
-  # output for grid mode
+  # output for grid and current mode
   output$grid_plot <- renderPlot({
     
-    # current
-    if (input$mode_sel == 'Current') {
-      # data and dates
-      interpolated_df <- interpolated_data()
-      interpolated_dates <- as.character(interpolated_df@dates)
-      
-      # plot
-      spplot(interpolated_df,
-             which(interpolated_dates == input$grid_date_sel), # date
-             input$grid_var_sel) # variable
-    }
+    # plot
+    spplot(interpolated_data(),
+           which(interpolated_data()@dates == as.character(input$grid_date_sel)), # date
+           input$grid_var_sel) # variable
+  })
+  
+  # output for grid and projection
+  output$grid_plot_proj <- renderPlot({
     
-    # projection
-    if (input$mode_sel == 'Projection') {
-      
-      date_index <- which(
-        seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel
-      )
-      
-      # get the variable values array
-      var_values <- interpolated_data()$res_list[[input$grid_var_sel]][,,date_index]
-      
-      # create the data frame, but be careful, we need to invert the order in which
-      # the y coordinate is filled
-      data_df <- data.frame(
-        var = as.numeric(var_values[,ncol(var_values):1])
-      )
-      names(data_df) <- input$grid_var_sel
-      
-      data_list <- list(one = data_df)
-      names(data_list) <- input$grid_date_sel
-      
-      grid_sel <- points2grid(interpolated_data()$points_sel)
-      
-      grid_meteo <- SpatialGridMeteorology(
-        grid_sel,
-        data = data_list,
-        dates = as.Date(input$grid_date_sel)
-      )
-      
-      spplot(grid_meteo, input$grid_date_sel, input$grid_var_sel)
-    }
+    date_index <- which(
+      seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel_proj
+    )
+    
+    # get the variable values array
+    var_values <- interpolated_data()$res_list[[input$grid_var_sel_proj]][,,date_index]
+    
+    # create the data frame, but be careful, we need to invert the order in which
+    # the y coordinate is filled
+    data_df <- data.frame(
+      var = as.numeric(var_values[,ncol(var_values):1])
+    )
+    names(data_df) <- input$grid_var_sel_proj
+    
+    data_list <- list(one = data_df)
+    names(data_list) <- input$grid_date_sel_proj
+    
+    grid_sel <- points2grid(interpolated_data()$points_sel)
+    
+    grid_meteo <- SpatialGridMeteorology(
+      grid_sel,
+      data = data_list,
+      dates = as.Date(input$grid_date_sel_proj)
+    )
+    
+    spplot(grid_meteo, input$grid_date_sel_proj, input$grid_var_sel_proj)
   })
   
   # observe event to record the map clicks and append the coordinates clicked
@@ -462,89 +541,6 @@ function(input, output, session) {
     }
   )
   
-  # logic for the process button
-  interpolated_data <- eventReactive(
-    eventExpr = input$process_button,
-    valueExpr = {
-      # progress object
-      # progress bar logic
-      # Create a Progress object
-      progress <- shiny::Progress$new()
-      progress$set(message = "Processing data", value = 0)
-      # Close the progress when this reactive exits (even if there's an error)
-      on.exit(progress$close())
-      
-      updateProgress <- function(value = NULL, detail = NULL,
-                                 n_coords = NULL, max_val = progress$getMax()) {
-        if (is.null(value)) {
-          value <- progress$getValue()
-          value <- value + ((max_val - value) / n_coords)
-        }
-        
-        progress$set(value = value, detail = detail)
-      }
-      
-      # current points method
-      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
-        
-        interpolated_data <- current_points_mode_process(
-          user_df = user_coords$df,
-          user_dates = input$date_range_current,
-          updateProgress = updateProgress
-        )
-      }
-      
-      # historical points mode
-      if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points') {
-        
-        interpolated_data <- historical_points_mode_process(
-          user_df = user_coords$df,
-          user_dates = input$date_range_historical,
-          updateProgress = updateProgress
-        )
-      }
-      
-      # projection points mode
-      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points') {
-        
-        interpolated_data <- projection_points_mode_process(
-          user_df = user_coords$df,
-          rcm = input$rcm,
-          rcp = input$rcp,
-          updateProgress = updateProgress
-        )
-      }
-      
-      # current grid mode
-      if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid') {
-        
-        interpolated_data <- current_grid_mode_process(
-          user_coords = data.frame(
-            x = c(input$longitude, input$longitude_bottom),
-            y = c(input$latitude, input$latitude_bottom)
-          ),
-          user_dates = input$date_range_current,
-          updateProgress = updateProgress
-        )
-      }
-      
-      # projection grid mode
-      if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Grid') {
-        interpolated_data <- projection_grid_mode_process(
-          user_coords = data.frame(
-            x = c(input$longitude, input$longitude_bottom),
-            y = c(input$latitude, input$latitude_bottom)
-          ),
-          rcm = input$rcm,
-          rcp = input$rcp,
-          updateProgress
-        )
-      }
-      
-      # return the interpolated data
-      return(interpolated_data)
-    }
-  )
   
   # debug
   # output$clicked <- renderPrint(as.data.frame(input$map_click))
@@ -558,5 +554,13 @@ function(input, output, session) {
   #         names(interpolated_data()@data),
   #         sep = ' - ')
   # )
+  # output$debug_date_sel <- renderPrint({
+  #   interpolated_df <- interpolated_data()
+  #   interpolated_dates <- as.character(interpolated_df@dates)
+  #   
+  #   which(interpolated_dates == as.character(input$grid_date_sel))
+  # })
+  # output$debug_date_sel_proj <- renderPrint(input$grid_date_sel_proj)
+  
   
 }

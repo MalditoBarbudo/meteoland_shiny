@@ -241,15 +241,26 @@ navbarPage(
               )
             ),
             
-            # conditional panel in case of grid (with grid we show the grid
+            # conditional panel in case of grid  and current (with grid we show the grid
             # for the selected day and variable)
             conditionalPanel(
-              condition = "input.point_grid_sel == 'Grid'",
+              condition = "input.point_grid_sel == 'Grid' && input.mode_sel == 'Current'",
               
               # spplot output
               wellPanel(
                 h4('Grid Plot'),
                 plotOutput('grid_plot', height = '400px')
+              )
+            ),
+            
+            # conditional in case of grid and projection
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Grid' && input.mode_sel == 'Projection'",
+              
+              # spplot output
+              wellPanel(
+                h4('Grid Plot'),
+                plotOutput('grid_plot_proj', height = '400px')
               )
             )
             
@@ -294,17 +305,17 @@ navbarPage(
             conditionalPanel(
               condition = "input.point_grid_sel == 'Grid'",
               
-              # variable input
-              selectInput(
-                inputId = 'grid_var_sel',
-                label = 'Select a variable to visualize',
-                choices = character(0) # empty until grid is processed
-              ),
-              
               # date input (empty until grid is processed) and conditional on mode
               # current
               conditionalPanel(
                 condition = "input.mode_sel == 'Current'",
+                # variable input
+                selectInput(
+                  inputId = 'grid_var_sel',
+                  label = 'Select a variable to visualize',
+                  choices = character(0) # empty until grid is processed
+                ),
+                # date input
                 dateInput(
                   inputId = 'grid_date_sel',
                   label = 'Select a date to visualize'
@@ -313,14 +324,25 @@ navbarPage(
               # projection
               conditionalPanel(
                 condition = "input.mode_sel == 'Projection'",
+                # variable input
+                selectInput(
+                  inputId = 'grid_var_sel_proj',
+                  label = 'Select a variable to visualize',
+                  choices = character(0) # empty until grid is processed
+                ),
+                # date input
                 selectizeInput(
-                  inputId = 'grid_date_sel',
+                  inputId = 'grid_date_sel_proj',
                   label = 'Select a date to visualize',
                   choices = character(0),
                   options = list(maxOptions = 1200)
                 )
               )
-            )
+            ),
+            
+            # debug
+            textOutput('debug_date_sel'),
+            textOutput('debug_date_sel_proj')
           )
         )
       )
