@@ -1,6 +1,8 @@
 ---
 title: "How to use the `meteoland` shiny app"
-output: pdf_document
+output: 
+  pdf_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -11,6 +13,7 @@ Under contruction!!
 
 Here will be the super-useful user guide to the meteoland app, stay tuned!
 
+\newpage
 
 ## General info
 
@@ -22,8 +25,6 @@ the `meteoland` package, given that metereological data and/or climate model pro
 are available for you. See the package user guide to know how!  
 
 # Getting started
-
-## Selecting a mode
 
 Whatever you want to do, interpolate current year or historical dates,
 interpolate and downscale future projection based on climate models... we have
@@ -92,7 +93,7 @@ selected point.
 Also, if you want all the historical period in ten different points, it will
 take some minutes to process the data, so you can slack off a little ;)
 
-![Ecologists working hard (modified from https://xkcd.com/303/)](resources/compiling.png)
+![Ecologists working hard (modified from https://xkcd.com/303/)](resources/compiling_scaled.png)
 
 ### What's happening behind the curtains?
 
@@ -273,12 +274,39 @@ and around (in a 30km buffer area) the selected area.
      app will start to process the grid and will show the results in the
      `DATA OUTPUT` tab  
 
-![Introducing parameters in the current grid mode](resources/current_grid_mode_01.png)
+![Introducing parameters in the current grid mode](resources/current_grid_mode_01_scaled.png)
 
 ### Data output
 
-After the `Go` button is pressed app change to the `DATA OUTPUT` tab. 
+After the `Go` button is pressed and the data is processed, app will change to
+the `DATA OUTPUT` tab automatically. Depending on the grid size, it can take a
+while to process all the data.  
 
+![Progress dialogue in the Current Grid mode](resources/current_grid_mode_02.png)
+
+In the `DATA OUTPUT` tab you will find a grid plot showing the results for the
+selected variable and date, which you can change in the right sidebar of the
+tab. In order to download the data, if the `Download` button is pressed a `zip`
+file will be generated, containing a `netCDF` file for each day of the dates
+range selected (see the [ncdf4 package](https://cran.r-project.org/package=ncdf4)
+to read and acces the data from R).  
+
+![Output overview of the Current Grid mode](resources/current_grid_mode_03.png)
+
+### Limitations
+
+1. Dates ranges limited to the available current year dates
+
+### What's happening behind the curtains?
+
+Here we *cheat* a little. Instead of processing grids, we have precalculated the
+grid topography as spatial points, and from that the interpolation is made for
+the points inside the grid provided in the `USER INPUT` tab. In this way the
+interpolation is made with the `interpolationpoints` function (faster than
+the grid equivalent function). After that a `SpatialMetereologyGrid` is created
+and returned to visualize the results.  
+Results are served as `netCDF` files, an standard file type for multidimensional
+data.
 
 \newpage
 
@@ -287,6 +315,8 @@ After the `Go` button is pressed app change to the `DATA OUTPUT` tab.
 In this case data are interpolated and downscaled from coarse
 climate models projections (using both, historical and future data and including
 a statistical correction) to the selected grid scale (1km^2^).  
+
+### Data input
 
   1. Go to the `USER INPUT` tab  
   1. Select `Projection` and `Points` in the left sidebar  
@@ -306,3 +336,31 @@ a statistical correction) to the selected grid scale (1km^2^).
      `DATA OUTPUT` tab  
 
 ![Introducing parameters in the projection grid mode](resources/projection_grid_mode_01.png)
+
+### Data output
+
+For this mode only mean month values are returned, as doing it at day scale is
+computationally expensive. So in this case the process will also take a while to
+complete, as all months from 2006 to 2100 are processed.  
+
+![Progress dialogue in the Projection Grid mode](resources/projection_grid_mode_02.png)
+
+`DATA OUTPUT` tab is similar to the *Current Grid mode* one, as a grid plot
+is presented for the selected variable and date (first day of the month in this
+case). After clicking in the `Download` button an single `netCDF` file containing
+all dates and metereological values for all variables is created and downloaded.  
+
+![Output overview of the Projection Grid mode](resources/projection_grid_mode_03.png)
+
+### Limitations
+
+  1. Grid size is limited to a maximium size of 2500 km^2^  
+  2. No date selection, all future projection is returned  
+
+### What's happening behind the curtains?
+
+Grid projections are expensive (in terms of processing and memory), so in this
+case we have a precalculated grid for all Catalonia with the interpolated and
+corrected values, so in this case we subset the precalculated grid and create
+an `SpatialMetereologyGrid` object to visualize the results.
+

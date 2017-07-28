@@ -812,7 +812,7 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp, updateProgress) 
     if (is.function(updateProgress)) {
       updateProgress(
         detail = paste0('Processing variable ', i, ' of ',
-                        length(var_names), '(', var_names[i], ')'),
+                        length(var_names), ' (', var_names[i], ')'),
         n_coords = length(var_names)
       )
     }
