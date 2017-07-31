@@ -731,7 +731,8 @@ current_grid_mode_process <- function(user_coords, user_dates,
 
 ################################################################################
 # projection grid mode
-projection_grid_mode_process <- function(user_coords, rcm, rcp, updateProgress) {
+projection_grid_mode_process <- function(user_coords, rcm, rcp,
+                                         updateProgress = NULL) {
   
   # STEP 1 OPEN THE CONN TO THE netCDF FILE
   if (is.function(updateProgress)) {
@@ -847,6 +848,105 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp, updateProgress) 
 }
 
 ################################################################################
+# Historical Grid mode
+historical_grid_mode_process <- function(user_coords, user_dates,
+                                         updateProgress = NULL) {
+  
+  # STEP 1 OPEN THE CONN TO THE netCDF FILE
+  file_name <- file.path('/', 'run', 'user', '1000', 'gvfs',
+                         'smb-share:server=serverprocess,share=miquel',
+                         'Datasets', 'Climate', 'Products', 'Pixels1k',
+                         'Historical', 'netCDF', 'historical_netCDF.nc')
+  
+  nc <- nc_open(file_name)
+  
+  # STEP 2 CONVERT TO UTM THE USER COORDS
+  # convert to utm
+  # make a coordinates object from the data frame provided
+  coordinates(user_coords) <- ~x+y
+  
+  # add the projection string attribute
+  proj4string(user_coords) <- CRS("+proj=longlat +datum=WGS84")
+  
+  # transform the coordinates projection to the correct projection
+  user_coords <- as.data.frame(spTransform(
+    user_coords,
+    CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
+  ))
+  
+  # STEP 3 SUBSET THE netCDF DATA
+  # extract X and Y values from netCDF file
+  nc_x_coord_vals <- nc$dim$X$vals
+  nc_y_coord_vals <- nc$dim$Y$vals
+  
+  # time values
+  historical_days <- seq(as.Date('1976-01-01'), as.Date('2016-12-01'),
+                         by = 'day')
+  
+  # index for X
+  x_dist_upper <- abs(nc_x_coord_vals - user_coords$x[1])
+  x_index_upper <- which.min(x_dist_upper)
+  
+  x_dist_bottom <- abs(nc_x_coord_vals - user_coords$x[2])
+  x_index_bottom <- which.min(x_dist_bottom)
+  
+  # index for Y
+  y_dist_upper <- abs(nc_y_coord_vals - user_coords$y[1])
+  y_index_upper <- which.min(y_dist_upper)
+  
+  y_dist_bottom <- abs(nc_y_coord_vals - user_coords$y[2])
+  y_index_bottom <- which.min(y_dist_bottom)
+  
+  # index for T
+  t_index_upper <- which(historical_days %in% user_dates[2])
+  t_index_bottom <- which(historical_days %in% user_dates[1])
+  
+  # number of x, y and t values to get
+  x_index_length <- x_index_bottom - x_index_upper
+  y_index_length <- y_index_upper - y_index_bottom
+  t_index_length <- t_index_upper - t_index_bottom
+  
+  # get the var names
+  var_names <- names(nc$var)
+  # empty list for arrays for each var
+  res_list <- vector('list', length(var_names))
+  
+  # loop to retrieve each var data in an array
+  for (i in 1:length(var_names)) {
+    
+    res_list[[i]] <- ncvar_get(nc, var_names[i],
+                               start = c(x_index_upper, y_index_bottom, t_index_bottom),
+                               count = c(x_index_length, y_index_length, t_index_length))
+  }
+  # name the list with the var names
+  names(res_list) <- var_names
+  
+  # STEP 4 CREATE ALSO THE SPATIAL POINTS TO DRAW THE GRID IN THE VISUALIZATION
+  
+  # also, as here we have the indexes, we get the points to generate the grid
+  x = ncvar_get(nc, 'X', x_index_upper, x_index_length)
+  y = ncvar_get(nc, 'Y', y_index_bottom, y_index_length)
+  
+  points_sel <- SpatialPoints(
+    expand.grid(list(x = x, y = y))
+  )
+  
+  # create a list with the points and the data and return it
+  res <- list(points_sel = points_sel,
+              res_list = res_list,
+              x_vals = x,
+              y_vals = y)
+  
+  # close nc
+  nc_close(nc)
+  
+  return(res)
+  
+}
+
+
+
+################################################################################
 # Download button functions. This functions check for the mode selected by the
 # user and generate the data file and filename accordingly.
 
@@ -877,7 +977,7 @@ filename_function <- function(input, data) {
     }
   }
   
-  if (input$mode_sel %in% c('Projection') & input$point_grid_sel == 'Grid') {
+  if (input$mode_sel %in% c('Projection', 'Historical') & input$point_grid_sel == 'Grid') {
     return('meteoland_output.nc')
   }
 }
@@ -964,6 +1064,62 @@ content_function <- function(input, data, file) {
       )
     }
     
+    nc_close(nc)
+    
+  }
+  
+  if (input$mode_sel %in% c('Historical') & input$point_grid_sel == 'Grid') {
+    
+    # create the nc file
+    # dimension variables
+    dimX <- ncdim_def('X', 'meters', data$x_vals)
+    dimX <- ncdim_def('Y', 'meters', data$y_vals)
+    dimT <- ncdim_def('Time', 'days',
+                      1:length(seq(as.Date(input$date_range_historical[1]),
+                                   as.Date(input$date_range_historical[2]),
+                                   by = 'day')))
+    
+    # variables
+    MeanTemperature <- ncvar_def('MeanTemperature', 'Celsius degrees',
+                                 list(dimX, dimY, dimT), NA)
+    MaxTemperature <- ncvar_def('MaxTemperature', 'Celsius degrees',
+                                list(dimX, dimY, dimT), NA)
+    MinTemperature <- ncvar_def('MinTemperature', 'Celsius degrees',
+                                list(dimX, dimY, dimT), NA)
+    Precipitation <- ncvar_def('Precipitation', 'mm',
+                               list(dimX, dimY, dimT), NA)
+    MeanRelativeHumidity <- ncvar_def('MeanRelativeHumidity', 'Percentage',
+                                      list(dimX, dimY, dimT), NA)
+    MaxRelativeHumidity <- ncvar_def('MaxRelativeHumidity', 'Percentage',
+                                     list(dimX, dimY, dimT), NA)
+    MinRelativeHumidity <- ncvar_def('MinRelativeHumidity', 'Percentage',
+                                     list(dimX, dimY, dimT), NA)
+    Radiation <- ncvar_def('Radiation', '',
+                           list(dimX, dimY, dimT), NA)
+    WindSpeed <- ncvar_def('WindSpeed', 'meters per second',
+                           list(dimX, dimY, dimT), NA)
+    WindDirection <- ncvar_def('WindDirection', '',
+                               list(dimX, dimY, dimT), NA)
+    PET <- ncvar_def('PET', 'mm',
+                     list(dimX, dimY, dimT), NA)
+    
+    nc <- nc_create(
+      file,
+      list(MeanTemperature, MaxTemperature, MinTemperature,
+           Precipitation, MeanRelativeHumidity, MaxRelativeHumidity,
+           MinRelativeHumidity, Radiation, WindSpeed,
+           WindDirection, PET)
+    )
+    
+    # fill the nc file
+    for (var in names(data$res_list)) {
+      ncvar_put(
+        nc, var,
+        data$res_list[[var]]
+      )
+    }
+    
+    # close the nc file
     nc_close(nc)
     
   }

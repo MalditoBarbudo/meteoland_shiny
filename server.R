@@ -228,6 +228,18 @@ function(input, output, session) {
         )
       }
       
+      # historical grid mode
+      if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Grid') {
+        interpolated_data <- historical_grid_mode_process(
+          user_coords = data.frame(
+            x = c(input$longitude, input$longitude_bottom),
+            y = c(input$latitude, input$latitude_bottom)
+          ),
+          user_dates = input$date_range_historical,
+          updateProgress
+        )
+      }
+      
       # return the interpolated data
       return(interpolated_data)
     }
@@ -331,6 +343,38 @@ function(input, output, session) {
               label = 'Select a date to visualize',
               choices = seq(as.Date('2006-01-01'), as.Date('2100-12-01'),
                             by = 'month')
+            )
+          })
+        }
+        
+        # historical
+        if (input$mode_sel == 'Historical') {
+          isolate({
+            # change the active tab to the output tab
+            updateTabsetPanel(
+              session,
+              inputId = 'shiny_tabs',
+              selected = 'Data output'
+            )
+            
+            # get the variables names
+            grid_var_names <- names(interpolated_data()$res_list)
+            
+            # update the var selector
+            updateSelectInput(
+              session,
+              inputId = 'grid_var_sel_hist',
+              label = 'Select a variable to visualize',
+              choices = grid_var_names
+            )
+            
+            # update the date selector
+            updateDateInput(
+              session,
+              inputId = 'grid_date_sel_hist',
+              value = input$date_range_historical[1],
+              min = input$date_range_historical[1],
+              max = input$date_range_historical[2]
             )
           })
         }

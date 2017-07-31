@@ -337,6 +337,21 @@ navbarPage(
                   choices = character(0),
                   options = list(maxOptions = 1200)
                 )
+              ),
+              # historical
+              conditionalPanel(
+                condition = "input.mode_sel == 'Historical'",
+                # variable input
+                selectInput(
+                  inputId = 'grid_var_sel_hist',
+                  label = 'Select a variable to visualize',
+                  choices = character(0) # emtpy until grid is processed
+                ),
+                # date input
+                dateInput(
+                  inputId = 'grid_date_sel_hist',
+                  label = 'Select a date to visualize'
+                )
               )
             ),
             
