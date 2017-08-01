@@ -18,10 +18,111 @@ navbarPage(
   
   # About tab (tabwith r package description, disclaimer and so on...)
   tabPanel(
-    title = 'About', icon = icon('info-circle'),
+    title = 'Welcome!', icon = icon('pagelines'),
     
     # RMardown document
-    includeMarkdown('Docs/Disclaimer.Rmd')
+    # includeMarkdown('Docs/Welcome.md')
+    
+    # welcome page in html
+    div(
+      id = 'welcome',
+      style = 'width:100%',
+      
+      # custom css
+      includeCSS("www/custom.css"),
+      
+      # a little space
+      br(),
+      
+      # logo with link to CRAN
+      a(
+        id = 'logo',
+        href = "https://cran.r-project.org/package=meteoland",
+        img(style = 'display:inline-block',
+            src = 'package_logo.png', alt = 'meteoland link')
+      ),
+      
+      # subtitle
+      h2(id = 'subtitle',
+         'Landscape Meteorology Tools for Ecologists'),
+      
+      # a little space
+      br(),
+      
+      # left div
+      column(
+        6,
+        div(
+          id = 'leftdiv',
+          style = 'display:inline-block;text-align:justify',
+          br(),
+          p(style = 'margin: 10px 30px 10px 30px',
+            strong('meteoland'),
+            'package provides functions to estimate weather variables ',
+            '(temperature, realtive humidity, precipitation...) by means of ',
+            'interpolation and statistical corrections.'),
+          p(style = 'margin: 10px 30px 10px 30px',
+            'This allows for precise metereological information of experimental ',
+            'plots as well as future projections in different scenarios for the ',
+            'landscape/plot scale'),
+          br()
+        )
+      ),
+      
+      # right div
+      div(
+          id = 'rightdiv',
+          style = 'display:inline-block;width:50%;text-align:justify',
+          br(),
+          p(style = 'margin: 10px 30px 10px 30px',
+            'Here you will learn how to use the ',
+            strong('meteoland'), 'R package to interpolate different climate variables',
+            'from metereological stations data as well as from regional climate models ',
+            'and climate change scenarios'),
+          p(style = 'margin: 10px 30px 10px 30px',
+            'Also, an interactive shiny app is provided to interpolate metereological ',
+            'data in the Catalonian region as an example of the package capabilities.')
+      ),
+      
+      br(),br(),br()
+    ),
+    
+    # an space
+    br(), br(),
+    
+    # logos row
+    div(
+      style = 'text-align:center',
+      fluidRow(
+        column(
+          4,
+          a(
+            id = 'logo_grupo',
+            href = "http://vegmod.ctfc.cat/",
+            img(style = 'display:inline-block',
+                src = 'LOGO_Group_scaled.png')
+          )
+        ),
+        column(
+          4,
+          a(
+            id = 'logo_ctfc',
+            href = "http://www.ctfc.cat/",
+            img(style = 'display:inline-block',
+                src = 'logo_ctfc_scaled.png')
+          )
+        ),
+        column(
+          4,
+          a(
+            id = 'logo_creaf',
+            href = "http://www.creaf.cat/",
+            img(style = 'display:inline-block',
+                src = 'logo_creaf_scaled.png')
+          )
+        )
+      )
+    )
   ),
   
   # meteoland R package manual tab
@@ -29,17 +130,17 @@ navbarPage(
     title = 'User Guide', icon = icon('book'),
     
     # Html document (generated from an Rmd)
-    includeMarkdown('Docs/User_Guide.Rmd')
+    includeMarkdown('Docs/User_Guide.md')
   ),
   
-  # meteoland R package examples
-  tabPanel(
-    title = 'Examples', icon = icon('flask'),
-    
-    ## TO DO add some examples of using meteoland with real data. Probably
-    ## an html document generated from an Rmd.
-    includeMarkdown('Docs/Examples.Rmd')
-  ),
+  # meteoland R package examples (this will be included in the package manual)
+  # tabPanel(
+  #   title = 'Examples', icon = icon('flask'),
+  #   
+  #   ## TO DO add some examples of using meteoland with real data. Probably
+  #   ## an html document generated from an Rmd.
+  #   includeMarkdown('Docs/Examples.Rmd')
+  # ),
   
   tabPanel(
     title = 'Shiny App', icon = icon('television'),
@@ -47,19 +148,6 @@ navbarPage(
     # in order to obtain two tabs (map and data) we need to nest a tabsetPanel here
     tabsetPanel(
       type = 'pills', id = 'shiny_tabs',
-      
-      # app guide tab
-      tabPanel(
-        title = 'App user guide', icon = icon('book'),
-        
-        # a little space
-        br(),
-        
-        # a nice document explaining how to use the app
-        # includeMarkdown('Docs/app_user_guide.Rmd')
-        tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
-                    src = "app_user_guide.pdf#zoom=120")
-      ),
       
       # user input tab
       tabPanel(
@@ -360,7 +448,28 @@ navbarPage(
             textOutput('debug_date_sel_proj')
           )
         )
+      ),
+      
+      # app guide tab
+      tabPanel(
+        title = 'App user guide', icon = icon('book'),
+        
+        # a little space
+        br(),
+        
+        # a nice document explaining how to use the app
+        # includeMarkdown('Docs/app_user_guide.Rmd')
+        tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
+                    src = "app_user_guide.pdf#zoom=120")
       )
     )
+  ),
+  
+  # About tab (tabwith r package description, disclaimer and so on...)
+  tabPanel(
+    title = 'About', icon = icon('info-circle'),
+    
+    # RMardown document
+    includeMarkdown('Docs/Disclaimer.Rmd')
   )
 )

@@ -24,20 +24,9 @@ If you want to interpolate metereological variables from another area yo can use
 the `meteoland` package, given that metereological data and/or climate model projections
 are available for you. See the package user guide to know how!  
 
-# Getting started
-
-Whatever you want to do, interpolate current year or historical dates,
-interpolate and downscale future projection based on climate models... we have
-a mode for you:
-
-  1. **Historical Points mode**  
-  1. **Current Points mode**  
-  1. **Projection Points mode**  
-  1. **Historical Grid mode**  
-  1. **Current Grid mode**  
-  1. **Projection Grid mode**
-
 \newpage
+
+# **Points mode**
 
 ## **Historical Points mode**
 
