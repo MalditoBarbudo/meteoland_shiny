@@ -854,14 +854,7 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp,
 historical_grid_mode_process <- function(user_coords, user_dates,
                                          updateProgress = NULL) {
   
-  # STEP 1 OPEN THE CONN TO THE netCDF FILE
-  file_name <- file.path('/home', 'miquel',
-                         'Datasets', 'Climate', 'Products', 'Pixels1k',
-                         'Historical', 'netCDF', 'historical_netCDF.nc')
-  
-  nc <- nc_open(file_name)
-  
-  # STEP 2 CONVERT TO UTM THE USER COORDS
+  # STEP 1 CONVERT TO UTM THE USER COORDS
   # convert to utm
   # make a coordinates object from the data frame provided
   coordinates(user_coords) <- ~x+y
@@ -875,71 +868,115 @@ historical_grid_mode_process <- function(user_coords, user_dates,
     CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
   ))
   
-  # STEP 3 SUBSET THE netCDF DATA
-  # extract X and Y values from netCDF file
-  nc_x_coord_vals <- nc$dim$X$vals
-  nc_y_coord_vals <- nc$dim$Y$vals
+  # STEP 2 OPEN THE CONN TO THE netCDF FILE
   
-  # time values
-  historical_days <- seq(as.Date('1976-01-01'), as.Date('2016-12-01'),
-                         by = 'day')
+  # for this we need first to extract the years to know which netCDF files we
+  # have to open
+  dates <- seq(as.Date(user_dates[1]), as.Date(user_dates[2]), by = 'day')
+  years <- as.character(unique(lubridate::year(dates)))
   
-  # index for X
-  x_dist_upper <- abs(nc_x_coord_vals - user_coords$x[1])
-  x_index_upper <- which.min(x_dist_upper)
+  # res list for years
+  years_list <- vector('list', length(years))
+  names(years_list) <- years
   
-  x_dist_bottom <- abs(nc_x_coord_vals - user_coords$x[2])
-  x_index_bottom <- which.min(x_dist_bottom)
-  
-  # index for Y
-  y_dist_upper <- abs(nc_y_coord_vals - user_coords$y[1])
-  y_index_upper <- which.min(y_dist_upper)
-  
-  y_dist_bottom <- abs(nc_y_coord_vals - user_coords$y[2])
-  y_index_bottom <- which.min(y_dist_bottom)
-  
-  # index for T
-  t_index_upper <- which(historical_days %in% user_dates[2])
-  t_index_bottom <- which(historical_days %in% user_dates[1])
-  
-  # number of x, y and t values to get
-  x_index_length <- x_index_bottom - x_index_upper
-  y_index_length <- y_index_upper - y_index_bottom
-  t_index_length <- t_index_upper - t_index_bottom
-  
-  # get the var names
-  var_names <- names(nc$var)
-  # empty list for arrays for each var
-  res_list <- vector('list', length(var_names))
-  
-  # loop to retrieve each var data in an array
-  for (i in 1:length(var_names)) {
+  # loop for years
+  for (year in years) {
     
-    res_list[[i]] <- ncvar_get(nc, var_names[i],
-                               start = c(x_index_upper, y_index_bottom, t_index_bottom),
-                               count = c(x_index_length, y_index_length, t_index_length))
+    # nc file name
+    # file_name <- file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
+    #                        'Pixels1k', 'Historical', 'netCDF',
+    #                        paste0(year, '_historical_netCDF.nc'))
+    file_name <- paste0('/run/user/1000/gvfs/smb-share:server=serverprocess,share=miquel/Datasets/Climate/Products/Pixels1k/Historical/netCDF/', year, '_historical_netCDF.nc')
+    
+    nc <- nc_open(file_name)
+    
+    # STEP 3 SUBSET THE netCDF DATA
+    
+    # extract X and Y values from netCDF file
+    nc_x_coord_vals <- nc$dim$X$vals
+    nc_y_coord_vals <- nc$dim$Y$vals
+    
+    # time values
+    historical_days <- seq(as.Date(paste0(year, '-01-01')),
+                           as.Date(paste0(year, '-12-31')),
+                           by = 'day')
+    # which days provided by the user are in looped year
+    user_days <- stringr::str_subset(dates, year)
+    
+    # index for X
+    x_dist_upper <- abs(nc_x_coord_vals - user_coords$x[1])
+    x_index_upper <- which.min(x_dist_upper)
+    
+    x_dist_bottom <- abs(nc_x_coord_vals - user_coords$x[2])
+    x_index_bottom <- which.min(x_dist_bottom)
+    
+    # index for Y
+    y_dist_upper <- abs(nc_y_coord_vals - user_coords$y[1])
+    y_index_upper <- which.min(y_dist_upper)
+    
+    y_dist_bottom <- abs(nc_y_coord_vals - user_coords$y[2])
+    y_index_bottom <- which.min(y_dist_bottom)
+    
+    # index for T
+    t_index_upper <- which(as.character(historical_days) %in% tail(user_days, 1))
+    t_index_bottom <- which(as.character(historical_days) %in% head(user_days, 1))
+    
+    # number of x, y and t values to get
+    x_index_length <- x_index_bottom - (x_index_upper - 1)
+    y_index_length <- y_index_upper - (y_index_bottom - 1)
+    t_index_length <- t_index_upper - (t_index_bottom - 1)
+    
+    # get the var names
+    var_names <- names(nc$var)
+    # empty list for arrays for each var
+    res_list <- vector('list', length(var_names))
+    names(res_list) <- var_names
+    
+    # loop to retrieve each var data in an array
+    for (i in 1:length(var_names)) {
+      
+      res_list[[i]] <- ncvar_get(nc, var_names[i],
+                                 start = c(x_index_upper, y_index_bottom, t_index_bottom),
+                                 count = c(x_index_length, y_index_length, t_index_length))
+    }
+    
+    years_list[[year]] <- res_list
+    
+    # also, as here we have the indexes, we get the points to generate the grid
+    # here this should be outside of the loop, but in  this way we are able to
+    # close the nc file in order to avoid errors
+    x = ncvar_get(nc, 'X', x_index_upper, x_index_length)
+    y = ncvar_get(nc, 'Y', y_index_bottom, y_index_length)
+    
+    # close nc
+    nc_close(nc)
+    
   }
-  # name the list with the var names
-  names(res_list) <- var_names
   
-  # STEP 4 CREATE ALSO THE SPATIAL POINTS TO DRAW THE GRID IN THE VISUALIZATION
+  # Now we need to create the final result by binding the arrays for each year
+  # for each variable by means of the abind package
+  result <- vector('list', length(years_list[[1]]))
   
-  # also, as here we have the indexes, we get the points to generate the grid
-  x = ncvar_get(nc, 'X', x_index_upper, x_index_length)
-  y = ncvar_get(nc, 'Y', y_index_bottom, y_index_length)
+  for (var in names(years_list[[1]])) {
+    
+    tmp_res <- array(dim = c(length(x), length(y), 1))
+    
+    for (year in names(years_list)) {
+      tmp_res <- abind::abind(tmp_res, years_list[[year]][[var]], along = 3)
+    }
+    result[[var]] <- tmp_res[,,-1]
+  }
   
+  # grid to return in the res
   points_sel <- SpatialPoints(
     expand.grid(list(x = x, y = y))
   )
   
   # create a list with the points and the data and return it
   res <- list(points_sel = points_sel,
-              res_list = res_list,
+              res_list = result,
               x_vals = x,
               y_vals = y)
-  
-  # close nc
-  nc_close(nc)
   
   return(res)
   
