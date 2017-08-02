@@ -76,7 +76,7 @@ getTopographyObject <- function(user_df) {
   
   for (i in 1:n_coords) {
     vals[[i]] <- ncExtractVarValueByCoords(
-      nc_file = file.path('Data', 'Topology_grid.nc'),
+      nc_file = file.path('..', 'Datasets', 'MDT', 'Topology_grid.nc'),
       x_coord = user_coords_utm@coords[i,1],
       y_coord = user_coords_utm@coords[i,2],
       var_names = c('Elevation', 'Slope', 'Aspect')
@@ -131,7 +131,9 @@ current_points_mode_process <- function(user_df, user_dates,
   for (i in seq_along(datevec)) {
     # files
     day_data[[i]] <- readmeteorologypoint(
-      file.path('Data', 'DailyCAT', paste0(as.character(datevec[[i]]), '.txt'))
+      file.path('..', 'Datasets', 'Climate', 'Sources', 'AEMET',
+                'Download', 'DailyCAT',
+                paste0(as.character(datevec[[i]]), '.txt'))
     )
     # codes
     codes <- row.names(day_data[[i]])
@@ -278,7 +280,8 @@ historical_points_mode_process <- function(user_df, user_dates,
   }
   
   # load the interpolator mother data
-  load('Data/Interpolator_Mother.rda')
+  load(file.path('..', 'Datasets', 'Climate', 'Products', 'MeteorologyInterpolationData',
+                 'Interpolator_Mother.rda'))
   
   # subset by the user dates
   datevec <- as.Date(user_dates)[[1]]:as.Date(user_dates)[[2]]
@@ -391,9 +394,7 @@ projection_points_mode_process <- function(user_df, rcm, rcp,
   }
   
   # folder & files paths
-  dir_path <- file.path('/', 'run', 'user', '1000', 'gvfs',
-                        'smb-share:server=10.1.2.10,share=informed',
-                        'Catalonia')
+  dir_path <- file.path('..', 'Datasets', 'Climate', 'Sources', 'EUROCordex')
   
   hist_pred_path <- file.path(dir_path, rcm, 'historical')
   future_pred_path <- file.path(dir_path, rcm, rcp)
@@ -537,7 +538,9 @@ current_grid_mode_process <- function(user_coords, user_dates,
   for (i in seq_along(datevec)) {
     # files
     day_data[[i]] <- readmeteorologypoint(
-      file.path('Data', 'DailyCAT', paste0(as.character(datevec[[i]]), '.txt'))
+      file.path('..', 'Datasets', 'Climate', 'Sources', 'AEMET',
+                'Download', 'DailyCAT',
+                paste0(as.character(datevec[[i]]), '.txt'))
     )
     # codes
     codes <- row.names(day_data[[i]])
@@ -742,9 +745,7 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp,
     )
   }
   
-  dir <- file.path('/', 'run', 'user', '1000', 'gvfs',
-                   'smb-share:server=serverprocess,share=miquel',
-                   'Datasets', 'Climate', 'Products', 'Pixels1k',
+  dir <- file.path('..', 'Datasets', 'Climate', 'Products', 'Pixels1k',
                    'Projections', rcm, rcp)
   file <- paste0(rcm, '_', gsub('\\.', '', rcp), '.nc')
   
@@ -853,8 +854,7 @@ historical_grid_mode_process <- function(user_coords, user_dates,
                                          updateProgress = NULL) {
   
   # STEP 1 OPEN THE CONN TO THE netCDF FILE
-  file_name <- file.path('/', 'run', 'user', '1000', 'gvfs',
-                         'smb-share:server=serverprocess,share=miquel',
+  file_name <- file.path('..',
                          'Datasets', 'Climate', 'Products', 'Pixels1k',
                          'Historical', 'netCDF', 'historical_netCDF.nc')
   
