@@ -18,7 +18,7 @@ navbarPage(
   
   # About tab (tabwith r package description, disclaimer and so on...)
   tabPanel(
-    title = 'Welcome!', icon = icon('pagelines'),
+    title = 'Welcome', icon = icon('pagelines'),
     
     # RMardown document
     # includeMarkdown('Docs/Welcome.md')
@@ -44,7 +44,7 @@ navbarPage(
       
       # subtitle
       h2(id = 'subtitle',
-         'Landscape Meteorology Tools for Ecologists'),
+         'Landscape Meteorology Tools'),
       
       # a little space
       br(),
@@ -52,19 +52,16 @@ navbarPage(
       # left div
       column(
         6,
+        br(),
         div(
           id = 'leftdiv',
           style = 'display:inline-block;text-align:justify',
           br(),
-          p(style = 'margin: 10px 30px 10px 30px',
+          p(style = 'margin: 10px 30px 10px 30px; font-size:16px',
             strong('meteoland'),
-            'package provides functions to estimate weather variables ',
-            '(temperature, realtive humidity, precipitation...) by means of ',
+            'package provides functions to estimate daily weather variables ',
+            '(temperature, realtive humidity, precipitation...) over landscapes, by means of ',
             'interpolation and statistical corrections.'),
-          p(style = 'margin: 10px 30px 10px 30px',
-            'This allows for precise metereological information of experimental ',
-            'plots as well as future projections in different scenarios for the ',
-            'landscape/plot scale'),
           br()
         )
       ),
@@ -74,14 +71,13 @@ navbarPage(
           id = 'rightdiv',
           style = 'display:inline-block;width:50%;text-align:justify',
           br(),
-          p(style = 'margin: 10px 30px 10px 30px',
+          p(style = 'margin: 10px 30px 10px 30px; font-size:16px',
             'Here you will learn how to use the ',
-            strong('meteoland'), 'R package to interpolate different climate variables',
-            'from metereological stations data as well as from regional climate models ',
-            'and climate change scenarios'),
-          p(style = 'margin: 10px 30px 10px 30px',
-            'Also, an interactive shiny app is provided to interpolate metereological ',
-            'data in the Catalonian region as an example of the package capabilities.')
+            strong('meteoland'), 'R package to interpolate weather',
+            'from meteorological stations data, and to downscale/correct predictions resulting from regional climate models '),
+          p(style = 'margin: 10px 30px 10px 30px; font-size:16px',
+            'In addition, an interactive shiny app is provided to illustrate the package capabilities, ',
+            'using the Catalan region as an example.')
       ),
       
       br(),br(),br()
