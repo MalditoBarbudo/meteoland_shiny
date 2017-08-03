@@ -800,7 +800,8 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp,
   
   # stop if the grid is too big
   if (x_index_length * y_index_length > 2500) {
-    stop('Grid too large to process. Must be less than 2500 km2')
+    nc_close(nc)
+    return('proj_grid_too_large')
   }
   
   # get the var names
@@ -883,6 +884,11 @@ historical_grid_mode_process <- function(user_coords, user_dates,
   dates <- seq(as.Date(user_dates[1]), as.Date(user_dates[2]), by = 'day')
   years <- as.character(unique(lubridate::year(dates)))
   
+  # stop if the timespan is too long
+  if (length(dates) > 1828) {
+    return('hist_time_span_too_large')
+  }
+  
   # res list for years
   years_list <- vector('list', length(years))
   names(years_list) <- years
@@ -903,8 +909,6 @@ historical_grid_mode_process <- function(user_coords, user_dates,
     file_name <- file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
                            'Pixels1k', 'Historical', 'netCDF',
                            paste0(year, '_historical_netCDF.nc'))
-    
-    
     nc <- nc_open(file_name)
     
     # STEP 3 SUBSET THE netCDF DATA
@@ -942,6 +946,12 @@ historical_grid_mode_process <- function(user_coords, user_dates,
     x_index_length <- (x_index_bottom - x_index_upper) + 1
     y_index_length <- (y_index_upper - y_index_bottom) + 1
     t_index_length <- (t_index_upper - t_index_bottom) + 1
+    
+    # stop if the grid is too big
+    if (x_index_length * y_index_length > 2500) {
+      nc_close(nc)
+      return('hist_grid_too_large')
+    }
     
     # get the var names
     var_names <- names(nc$var)

@@ -317,7 +317,7 @@ function(input, output, session) {
         }
         
         # projection
-        if (input$mode_sel == 'Projection') {
+        if (input$mode_sel == 'Projection' && !is.character(interpolated_data())) {
           isolate({
             
             # change the active tab to the output tab
@@ -350,7 +350,7 @@ function(input, output, session) {
         }
         
         # historical
-        if (input$mode_sel == 'Historical') {
+        if (input$mode_sel == 'Historical' && !is.character(interpolated_data())) {
           isolate({
             # change the active tab to the output tab
             updateTabsetPanel(
@@ -467,6 +467,10 @@ function(input, output, session) {
   # output for grid and projection
   output$grid_plot_proj <- renderPlot({
     
+    if (is.character(interpolated_data())) {
+      return()
+    }
+    
     date_index <- which(
       seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel_proj
     )
@@ -497,6 +501,10 @@ function(input, output, session) {
   
   # output for grid and historical
   output$grid_plot_hist <- renderPlot({
+    
+    if (is.character(interpolated_data())) {
+      return()
+    }
     
     # date index to subset
     date_index <- which(
@@ -624,6 +632,52 @@ function(input, output, session) {
     }
   )
   
+  # observeEvent for the modal dialogs
+  observeEvent(
+    eventExpr = {
+      interpolated_data()
+    },
+    
+    handlerExpr = {
+      
+      # if there is an error due to grid too large or time span too long,
+      # show the modal
+      if (is.character(interpolated_data())) {
+        
+        # grid too large in projection
+        if (interpolated_data() == 'proj_grid_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Grid too large to process (must be less than 2500 km2)."),
+            p("Please reload the app and try again with an smaller grid"),
+            easyClose = TRUE
+          ))
+        }
+        
+        # grid too large in historical
+        if (interpolated_data() == 'hist_grid_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Grid too large to process (must be less than 5000 km2)."),
+            p("Please reload the app and try again with an smaller grid"),
+            easyClose = TRUE
+          ))
+        }
+        
+        # time span too long in historical grid
+        if (interpolated_data() == 'hist_time_span_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Time span limit is 5 years"),
+            p("Please reload the app and try again limiting the time span"),
+            easyClose = TRUE
+          ))
+        }
+        
+      }
+    }
+  )
+  
   
   # debug
   # output$clicked <- renderPrint(as.data.frame(input$map_click))
@@ -643,7 +697,9 @@ function(input, output, session) {
   #   
   #   which(interpolated_dates == as.character(input$grid_date_sel))
   # })
-  # output$debug_date_sel_proj <- renderPrint({})
+  # output$debug_date_sel_proj <- renderPrint({
+  #   is.character(interpolated_data())
+  # })
   
   
 }
