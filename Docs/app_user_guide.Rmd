@@ -245,7 +245,29 @@ stations data.
 
 ### Data output
 
+After pressing the `Go` button the data process starts, showing a progress dialogue.
+When the process is finished the app changes automatically to the `DATA OUTPUT` tab
+allowing to inspect the results.  
 
+![Introducing parameters in the historical grid mode](resources/historical_grid_mode_02.png)
+
+In this tab a grid plot is presented for the selected variable and date.
+Data can be downloaded using the `Download` button, which will return a `netCDF`
+file.  
+
+![Introducing parameters in the historical grid mode](resources/historical_grid_mode_03.png)
+
+### Limitations
+
+1. Data range requests limited to 5 years.
+2. Grid size limited to ???
+
+### What's happening behind the curtains?
+
+Grid interpolations are expensive (in terms of processing and memory), so in this
+case we have a precalculated grid for all Catalonia with the interpolated values, 
+so in this case we subset the precalculated grid and create
+an `SpatialMetereologyGrid` object to visualize the results.
 
 \newpage
 
