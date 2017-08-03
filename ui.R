@@ -448,11 +448,11 @@ navbarPage(
                   label = 'Select a date to visualize'
                 )
               )
-            ),
+            )
             
             # debug
             # textOutput('debug_date_sel'),
-            textOutput('debug_date_sel_proj')
+            # textOutput('debug_date_sel_proj')
           )
         )
       ),

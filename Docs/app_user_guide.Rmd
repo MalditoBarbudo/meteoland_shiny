@@ -26,7 +26,7 @@ are available for you. See the package user guide to know how!
 
 \newpage
 
-# **Points mode**
+# **Points**
 
 ## **Historical Points mode**
 
@@ -217,11 +217,15 @@ object to visualize it.
 
 \newpage
 
+# **Grids**
+
 ## **Historical Grid mode**
 
 In this mode you will be able to interpolate a grid (rectangular area) in a
-range of dates between 1976 and the las year, based on the available metereological
-stations data inside and around (by a 30km buffer) the selected area.  
+range of dates between 1976 and the last year, based on the available metereological
+stations data.  
+
+### Data Input
 
   1. Go to the `USER INPUT` tab  
   1. Select `Historical` and `Grid` in the left sidebar  
@@ -238,6 +242,10 @@ stations data inside and around (by a 30km buffer) the selected area.
      `DATA OUTPUT` tab  
 
 ![Introducing parameters in the historical grid mode](resources/historical_grid_mode_01.png)
+
+### Data output
+
+
 
 \newpage
 

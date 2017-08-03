@@ -855,7 +855,15 @@ historical_grid_mode_process <- function(user_coords, user_dates,
                                          updateProgress = NULL) {
   
   # STEP 1 CONVERT TO UTM THE USER COORDS
+  
   # convert to utm
+  if (is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Converting user coordinates',
+      value = 0.1
+    )
+  }
+  
   # make a coordinates object from the data frame provided
   coordinates(user_coords) <- ~x+y
   
@@ -882,11 +890,20 @@ historical_grid_mode_process <- function(user_coords, user_dates,
   # loop for years
   for (year in years) {
     
+    # progress
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Processing dates corresponding to ', year),
+        n_coords = length(years),
+        max_val = 0.75
+      )
+    }
+    
     # nc file name
-    # file_name <- file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
-    #                        'Pixels1k', 'Historical', 'netCDF',
-    #                        paste0(year, '_historical_netCDF.nc'))
-    file_name <- paste0('/run/user/1000/gvfs/smb-share:server=serverprocess,share=miquel/Datasets/Climate/Products/Pixels1k/Historical/netCDF/', year, '_historical_netCDF.nc')
+    file_name <- file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
+                           'Pixels1k', 'Historical', 'netCDF',
+                           paste0(year, '_historical_netCDF.nc'))
+    
     
     nc <- nc_open(file_name)
     
@@ -959,6 +976,15 @@ historical_grid_mode_process <- function(user_coords, user_dates,
   names(result) <- names(years_list[[1]])
   
   for (var in names(years_list[[1]])) {
+    
+    # progress
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Retrieving ', var, ' data'),
+        n_coords = length(names(years_list[[1]])),
+        max_val = 1
+      )
+    }
     
     tmp_res <- array(dim = c(length(x), length(y), 1))
     
