@@ -794,9 +794,9 @@ projection_grid_mode_process <- function(user_coords, rcm, rcp,
   y_dist_bottom <- abs(nc_y_coord_vals - user_coords$y[2])
   y_index_bottom <- which.min(y_dist_bottom)
   
-  # number of x and y values to get
-  x_index_length <- x_index_bottom - x_index_upper
-  y_index_length <- y_index_upper - y_index_bottom
+  # number of x and y values to get. We add 1 to get the complete length
+  x_index_length <- (x_index_bottom - x_index_upper) + 1
+  y_index_length <- (y_index_upper - y_index_bottom) + 1
   
   # stop if the grid is too big
   if (x_index_length * y_index_length > 2500) {
@@ -921,10 +921,10 @@ historical_grid_mode_process <- function(user_coords, user_dates,
     t_index_upper <- which(as.character(historical_days) %in% tail(user_days, 1))
     t_index_bottom <- which(as.character(historical_days) %in% head(user_days, 1))
     
-    # number of x, y and t values to get
-    x_index_length <- x_index_bottom - (x_index_upper - 1)
-    y_index_length <- y_index_upper - (y_index_bottom - 1)
-    t_index_length <- t_index_upper - (t_index_bottom - 1)
+    # number of x, y and t values to get (we add 1 to get the full length)
+    x_index_length <- (x_index_bottom - x_index_upper) + 1
+    y_index_length <- (y_index_upper - y_index_bottom) + 1
+    t_index_length <- (t_index_upper - t_index_bottom) + 1
     
     # get the var names
     var_names <- names(nc$var)
@@ -956,6 +956,7 @@ historical_grid_mode_process <- function(user_coords, user_dates,
   # Now we need to create the final result by binding the arrays for each year
   # for each variable by means of the abind package
   result <- vector('list', length(years_list[[1]]))
+  names(result) <- names(years_list[[1]])
   
   for (var in names(years_list[[1]])) {
     
@@ -1111,7 +1112,7 @@ content_function <- function(input, data, file) {
     # create the nc file
     # dimension variables
     dimX <- ncdim_def('X', 'meters', data$x_vals)
-    dimX <- ncdim_def('Y', 'meters', data$y_vals)
+    dimY <- ncdim_def('Y', 'meters', data$y_vals)
     dimT <- ncdim_def('Time', 'days',
                       1:length(seq(as.Date(input$date_range_historical[1]),
                                    as.Date(input$date_range_historical[2]),

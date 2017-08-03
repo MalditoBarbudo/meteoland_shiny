@@ -346,6 +346,17 @@ navbarPage(
                 h4('Grid Plot'),
                 plotOutput('grid_plot_proj', height = '400px')
               )
+            ),
+            
+            # conditional in case of grid and historical
+            conditionalPanel(
+              condition = "input.point_grid_sel == 'Grid' && input.mode_sel == 'Historical'",
+              
+              # spplot output
+              wellPanel(
+                h4('Grid Plot'),
+                plotOutput('grid_plot_hist', height = '400px')
+              )
             )
             
           ),
@@ -440,7 +451,7 @@ navbarPage(
             ),
             
             # debug
-            textOutput('debug_date_sel'),
+            # textOutput('debug_date_sel'),
             textOutput('debug_date_sel_proj')
           )
         )

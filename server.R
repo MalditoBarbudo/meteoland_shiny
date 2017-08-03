@@ -493,6 +493,43 @@ function(input, output, session) {
     spplot(grid_meteo, input$grid_date_sel_proj, input$grid_var_sel_proj)
   })
   
+  # output for grid and historical
+  output$grid_plot_hist <- renderPlot({
+    
+    # date index to subset
+    date_index <- which(
+      seq(as.Date(input$date_range_historical[1]),
+          as.Date(input$date_range_historical[2]),
+          by = 'day') == input$grid_date_sel_hist
+    )
+    
+    # get the selected variable values for the selected day
+    var_values <- interpolated_data()$res_list[[input$grid_var_sel_hist]][,,date_index]
+    
+    # create the data frame, but be careful, we need to invert the order in which
+    # the y coordinate is filled
+    data_df <- data.frame(
+      var = as.numeric(var_values[,ncol(var_values):1])
+    )
+    names(data_df) <- input$grid_var_sel_hist
+    
+    # data list to greate the SpatialGridMeteo object
+    data_list <- list(one = data_df)
+    names(data_list) <- input$grid_date_sel_hist
+    
+    grid_sel <- points2grid(interpolated_data()$points_sel)
+    
+    # SpatialGridMeteo
+    grid_meteo <- SpatialGridMeteorology(
+      grid_sel,
+      data = data_list,
+      dates = as.Date(input$grid_date_sel_hist)
+    )
+    
+    # plot
+    spplot(grid_meteo, 1, 1)
+  })
+  
   # observe event to record the map clicks and append the coordinates clicked
   # to a data frame of coordinates
   observeEvent(
@@ -604,7 +641,36 @@ function(input, output, session) {
   #   
   #   which(interpolated_dates == as.character(input$grid_date_sel))
   # })
-  # output$debug_date_sel_proj <- renderPrint(input$grid_date_sel_proj)
+  output$debug_date_sel_proj <- renderPrint({
+    date_index <- which(
+      seq(as.Date(input$date_range_historical[1]),
+          as.Date(input$date_range_historical[2]),
+          by = 'day') == input$grid_date_sel_hist
+    )
+    
+    # get the variable values array
+    var_values <- interpolated_data()$res_list[[input$grid_var_sel_hist]][,,date_index]
+    
+    # create the data frame, but be careful, we need to invert the order in which
+    # the y coordinate is filled
+    data_df <- data.frame(
+      var = as.numeric(var_values[,ncol(var_values):1])
+    )
+    names(data_df) <- input$grid_var_sel_hist
+    
+    data_list <- list(one = data_df)
+    names(data_list) <- input$grid_date_sel_hist
+    
+    grid_sel <- points2grid(interpolated_data()$points_sel)
+    
+    grid_meteo <- SpatialGridMeteorology(
+      grid_sel,
+      data = data_list,
+      dates = as.Date(input$grid_date_sel_hist)
+    )
+    
+    grid_meteo@data
+  })
   
   
 }
