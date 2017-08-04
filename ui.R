@@ -216,7 +216,7 @@ navbarPage(
                     value = NA)),
               
               p("Grid mode selected."),
-              p("Please provide the upper right coordinates and the bottom right coordinates of the desired grid.")
+              p("Please provide the upper left coordinates and the bottom right coordinates of the desired grid.")
             ),
             
             # selected coordinates output, we need a fluid row to put inline
