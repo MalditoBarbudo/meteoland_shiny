@@ -125,8 +125,13 @@ navbarPage(
   tabPanel(
     title = 'User Guide', icon = icon('book'),
     
-    # Html document (generated from an Rmd)
-    includeMarkdown('Docs/User_Guide.md')
+    # a little space
+    br(),
+    
+    # a nice document explaining how to use the app
+    # includeMarkdown('Docs/app_user_guide.Rmd')
+    tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
+                src = "_main.pdf#zoom=120")
   ),
   
   # meteoland R package examples (this will be included in the package manual)
