@@ -10,11 +10,11 @@ library(xts)
 library(ncdf4)
 library(mapview)
 library(rgeos)
-library(lubridate)
-library(stringr)
 
 # load needed data and functions
 load('Data/stations_data.RData')
+load('Data/calibrations.RData')
+load('Data/grid_as_points_topography.RData')
 source('global.R')
 
 # server logic
@@ -317,7 +317,7 @@ function(input, output, session) {
         }
         
         # projection
-        if (input$mode_sel == 'Projection' && !is.character(interpolated_data())) {
+        if (input$mode_sel == 'Projection') {
           isolate({
             
             # change the active tab to the output tab
@@ -350,7 +350,7 @@ function(input, output, session) {
         }
         
         # historical
-        if (input$mode_sel == 'Historical' && !is.character(interpolated_data())) {
+        if (input$mode_sel == 'Historical') {
           isolate({
             # change the active tab to the output tab
             updateTabsetPanel(
@@ -467,10 +467,6 @@ function(input, output, session) {
   # output for grid and projection
   output$grid_plot_proj <- renderPlot({
     
-    if (is.character(interpolated_data())) {
-      return()
-    }
-    
     date_index <- which(
       seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel_proj
     )
@@ -497,47 +493,6 @@ function(input, output, session) {
     )
     
     spplot(grid_meteo, input$grid_date_sel_proj, input$grid_var_sel_proj)
-  })
-  
-  # output for grid and historical
-  output$grid_plot_hist <- renderPlot({
-    
-    if (is.character(interpolated_data())) {
-      return()
-    }
-    
-    # date index to subset
-    date_index <- which(
-      seq(as.Date(input$date_range_historical[1]),
-          as.Date(input$date_range_historical[2]),
-          by = 'day') == input$grid_date_sel_hist
-    )
-    
-    # get the selected variable values for the selected day
-    var_values <- interpolated_data()$res_list[[input$grid_var_sel_hist]][,,date_index]
-    
-    # create the data frame, but be careful, we need to invert the order in which
-    # the y coordinate is filled
-    data_df <- data.frame(
-      var = as.numeric(var_values[,ncol(var_values):1])
-    )
-    names(data_df) <- input$grid_var_sel_hist
-    
-    # data list to greate the SpatialGridMeteo object
-    data_list <- list(one = data_df)
-    names(data_list) <- input$grid_date_sel_hist
-    
-    grid_sel <- points2grid(interpolated_data()$points_sel)
-    
-    # SpatialGridMeteo
-    grid_meteo <- SpatialGridMeteorology(
-      grid_sel,
-      data = data_list,
-      dates = as.Date(input$grid_date_sel_hist)
-    )
-    
-    # plot
-    spplot(grid_meteo, 1, 1)
   })
   
   # observe event to record the map clicks and append the coordinates clicked
@@ -632,52 +587,6 @@ function(input, output, session) {
     }
   )
   
-  # observeEvent for the modal dialogs
-  observeEvent(
-    eventExpr = {
-      interpolated_data()
-    },
-    
-    handlerExpr = {
-      
-      # if there is an error due to grid too large or time span too long,
-      # show the modal
-      if (is.character(interpolated_data())) {
-        
-        # grid too large in projection
-        if (interpolated_data() == 'proj_grid_too_large') {
-          showModal(modalDialog(
-            title = "Oooops!",
-            p("Grid too large to process (must be less than 2500 km2)."),
-            p("Please reload the app and try again with an smaller grid"),
-            easyClose = TRUE
-          ))
-        }
-        
-        # grid too large in historical
-        if (interpolated_data() == 'hist_grid_too_large') {
-          showModal(modalDialog(
-            title = "Oooops!",
-            p("Grid too large to process (must be less than 5000 km2)."),
-            p("Please reload the app and try again with an smaller grid"),
-            easyClose = TRUE
-          ))
-        }
-        
-        # time span too long in historical grid
-        if (interpolated_data() == 'hist_time_span_too_large') {
-          showModal(modalDialog(
-            title = "Oooops!",
-            p("Time span limit is 5 years"),
-            p("Please reload the app and try again limiting the time span"),
-            easyClose = TRUE
-          ))
-        }
-        
-      }
-    }
-  )
-  
   
   # debug
   # output$clicked <- renderPrint(as.data.frame(input$map_click))
@@ -697,9 +606,7 @@ function(input, output, session) {
   #   
   #   which(interpolated_dates == as.character(input$grid_date_sel))
   # })
-  # output$debug_date_sel_proj <- renderPrint({
-  #   is.character(interpolated_data())
-  # })
+  # output$debug_date_sel_proj <- renderPrint(input$grid_date_sel_proj)
   
   
 }
