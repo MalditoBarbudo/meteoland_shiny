@@ -13,8 +13,8 @@ library(rgeos)
 
 # load needed data and functions
 load('Data/stations_data.RData')
-load('Data/calibrations.RData')
-load('Data/grid_as_points_topography.RData')
+# load('Data/calibrations.RData')
+# load('Data/grid_as_points_topography.RData')
 source('global.R')
 
 # server logic
