@@ -20,6 +20,12 @@ source('global.R')
 # server logic
 function(input, output, session) {
   
+  ## garbage collector to free memory at 1000 
+  observe({
+    invalidateLater(1000, session)
+    for (i in 1:10) {gc()}
+  })
+  
   # objects needed to reactiveEvents and so on
   
   # 1. empty coordinates data frame, to be able to add clicks in the map and
