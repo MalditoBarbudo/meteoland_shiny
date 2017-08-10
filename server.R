@@ -76,7 +76,7 @@ function(input, output, session) {
         'date_range_current',
         label = 'Select the date or date range (only current year)',
         start = NA, end = NA,
-        max = Sys.Date(),
+        max = Sys.Date() - 1,
         # min limit to select the date for current mode is the start of the
         # current year:
         min = as.Date(paste0(format(Sys.Date(), '%Y'), '-01', '-01'))
