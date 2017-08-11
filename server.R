@@ -323,7 +323,7 @@ function(input, output, session) {
         }
         
         # projection
-        if (input$mode_sel == 'Projection') {
+        if (input$mode_sel == 'Projection' && !is.character(interpolated_data())) {
           isolate({
             
             # change the active tab to the output tab
@@ -356,7 +356,7 @@ function(input, output, session) {
         }
         
         # historical
-        if (input$mode_sel == 'Historical') {
+        if (input$mode_sel == 'Historical' && !is.character(interpolated_data())) {
           isolate({
             # change the active tab to the output tab
             updateTabsetPanel(
