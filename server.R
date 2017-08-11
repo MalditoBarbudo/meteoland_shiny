@@ -531,7 +531,7 @@ function(input, output, session) {
       dates = as.Date(input$grid_date_sel_hist)
     )
     
-    spplot(grid_meteo, input$grid_date_sel_hist, input$grid_var_sel_hist)
+    spplot(grid_meteo, 1, 1)
   })
   
   # observe event to record the map clicks and append the coordinates clicked
