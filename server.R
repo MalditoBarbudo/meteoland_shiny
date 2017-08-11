@@ -182,6 +182,10 @@ function(input, output, session) {
       # current points method
       if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
         
+        # requirements to met for this mode (i.e. inputs needed)
+        req(user_coords$df, input$date_range_current)
+        
+        # interpolated data
         interpolated_data <- current_points_mode_process(
           user_df = user_coords$df,
           user_dates = input$date_range_current,
@@ -191,6 +195,9 @@ function(input, output, session) {
       
       # historical points mode
       if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points') {
+        
+        # requirements to met for this mode (i.e. inputs needed)
+        req(user_coords$df, input$date_range_historical)
         
         interpolated_data <- historical_points_mode_process(
           user_df = user_coords$df,
@@ -202,6 +209,9 @@ function(input, output, session) {
       # projection points mode
       if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points') {
         
+        # requirements to met for this mode (i.e. inputs needed)
+        req(user_coords$df, input$rcm, input$rcp)
+        
         interpolated_data <- projection_points_mode_process(
           user_df = user_coords$df,
           rcm = input$rcm,
@@ -212,6 +222,10 @@ function(input, output, session) {
       
       # current grid mode
       if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid') {
+        
+        # requirements to met for this mode (i.e. inputs needed)
+        req(input$longitude, input$longitude_bottom, input$latitude,
+            input$latitude_bottom, input$date_range_current)
         
         interpolated_data <- current_grid_mode_process(
           user_coords = data.frame(
@@ -225,6 +239,11 @@ function(input, output, session) {
       
       # projection grid mode
       if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Grid') {
+        
+        # requirements to met for this mode (i.e. inputs needed)
+        req(input$longitude, input$longitude_bottom, input$latitude,
+            input$latitude_bottom, input$rcm, input$rcp)
+        
         interpolated_data <- projection_grid_mode_process(
           user_coords = data.frame(
             x = c(input$longitude, input$longitude_bottom),
@@ -238,6 +257,11 @@ function(input, output, session) {
       
       # historical grid mode
       if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Grid') {
+        
+        # requirements to met for this mode (i.e. inputs needed)
+        req(input$longitude, input$longitude_bottom, input$latitude,
+            input$latitude_bottom, input$date_range_historical)
+        
         interpolated_data <- historical_grid_mode_process(
           user_coords = data.frame(
             x = c(input$longitude, input$longitude_bottom),
@@ -262,6 +286,9 @@ function(input, output, session) {
       # In case of points, we update the radioButtons input for coordinate
       # selection
       if (input$point_grid_sel == 'Points') {
+        
+        # requirements to met for this mode (i.e. inputs needed)
+        req(user_coords$df)
         
         # update the selector. We use isolate to avoid the crash of the app if the
         # user go back and press the reset button
