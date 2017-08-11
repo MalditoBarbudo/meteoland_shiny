@@ -473,6 +473,12 @@ function(input, output, session) {
   # output for grid and projection
   output$grid_plot_proj <- renderPlot({
     
+    # if the grid is too large interpolated data is character and no grid plot
+    # is draw
+    if (is.character(interpolated_data())) {
+      return()
+    }
+    
     date_index <- which(
       seq(as.Date('2006-01-01'), as.Date('2100-12-01'), by = 'month') == input$grid_date_sel_proj
     )
@@ -503,6 +509,12 @@ function(input, output, session) {
   
   # output for grid historical
   output$grid_plot_hist <- renderPlot({
+    
+    # if the grid is too large or more than 5 years
+    # interpolated data is character and no grid plot is draw
+    if (is.character(interpolated_data())) {
+      return()
+    }
     
     date_index <- which(
       seq(as.Date(input$date_range_historical[1]),
@@ -623,6 +635,52 @@ function(input, output, session) {
         lat = numeric(0),
         lng =  numeric(0)
       )
+    }
+  )
+  
+  # observeEvent for the modal dialogs
+  observeEvent(
+    eventExpr = {
+      interpolated_data()
+    },
+    
+    handlerExpr = {
+      
+      # if there is an error due to grid too large or time span too long,
+      # show the modal
+      if (is.character(interpolated_data())) {
+        
+        # grid too large in projection
+        if (interpolated_data() == 'proj_grid_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Grid too large to process (must be less than 2500 km2)."),
+            p("Please reload the app and try again with an smaller grid"),
+            easyClose = TRUE
+          ))
+        }
+        
+        # grid too large in historical
+        if (interpolated_data() == 'hist_grid_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Grid too large to process (must be less than 5000 km2)."),
+            p("Please reload the app and try again with an smaller grid"),
+            easyClose = TRUE
+          ))
+        }
+        
+        # time span too long in historical grid
+        if (interpolated_data() == 'hist_time_span_too_large') {
+          showModal(modalDialog(
+            title = "Oooops!",
+            p("Time span limit is 5 years"),
+            p("Please reload the app and try again limiting the time span"),
+            easyClose = TRUE
+          ))
+        }
+        
+      }
     }
   )
   
