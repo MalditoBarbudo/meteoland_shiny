@@ -8,7 +8,7 @@ library(htmltools)
 library(dygraphs)
 library(xts)
 library(ncdf4)
-library(mapview)
+# library(mapview)
 library(rgeos)
 
 # load needed data and functions
@@ -129,7 +129,7 @@ function(input, output, session) {
     inputTagList
   })
   
-  # map output
+  #### map output ####
   output$map <- renderLeaflet({
     leaflet() %>%
       fitBounds(lng1 = -0.02, lat1 = 43,
@@ -153,8 +153,8 @@ function(input, output, session) {
         position = 'bottomright',
         options = layersControlOptions(collapse = FALSE)
       ) %>%
-      hideGroup("Stations") %>%
-      addMouseCoordinates(style = 'basic')
+      hideGroup("Stations") #%>%
+      # addMouseCoordinates(style = 'basic')
   })
   
   #### interpolated_data() ####
@@ -422,7 +422,7 @@ function(input, output, session) {
     }
   })
   
-  # Download button logic
+  #### Download button logic ####
   output$download_btn <- downloadHandler(
     filename = filename_function(input, interpolated_data()),
     content = function(file) {
