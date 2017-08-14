@@ -157,6 +157,7 @@ function(input, output, session) {
       addMouseCoordinates(style = 'basic')
   })
   
+  #### interpolated_data() ####
   # logic for the process button
   interpolated_data <- eventReactive(
     eventExpr = input$process_button,
@@ -183,7 +184,8 @@ function(input, output, session) {
       if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points') {
         
         # requirements to met for this mode (i.e. inputs needed)
-        req(user_coords$df, input$date_range_current)
+        req(user_coords$df[1,1], user_coords$df[1,2],
+            input$date_range_current[1], input$date_range_current[1])
         
         # interpolated data
         interpolated_data <- current_points_mode_process(
@@ -197,7 +199,8 @@ function(input, output, session) {
       if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points') {
         
         # requirements to met for this mode (i.e. inputs needed)
-        req(user_coords$df, input$date_range_historical)
+        req(user_coords$df[1,1], user_coords$df[1,2],
+            input$date_range_historical[1], input$date_range_historical[2])
         
         interpolated_data <- historical_points_mode_process(
           user_df = user_coords$df,
@@ -210,7 +213,8 @@ function(input, output, session) {
       if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points') {
         
         # requirements to met for this mode (i.e. inputs needed)
-        req(user_coords$df, input$rcm, input$rcp)
+        req(user_coords$df[1,1], user_coords$df[1,2],
+            input$rcm, input$rcp)
         
         interpolated_data <- projection_points_mode_process(
           user_df = user_coords$df,
@@ -260,7 +264,8 @@ function(input, output, session) {
         
         # requirements to met for this mode (i.e. inputs needed)
         req(input$longitude, input$longitude_bottom, input$latitude,
-            input$latitude_bottom, input$date_range_historical)
+            input$latitude_bottom,
+            input$date_range_historical[1], input$date_range_historical[2])
         
         interpolated_data <- historical_grid_mode_process(
           user_coords = data.frame(
@@ -665,7 +670,8 @@ function(input, output, session) {
     }
   )
   
-  # observeEvent for the modal dialogs
+  # observeEvent for the modal dialogs about grid sizes and data ranges not
+  # allowed
   observeEvent(
     eventExpr = {
       interpolated_data()
@@ -710,6 +716,143 @@ function(input, output, session) {
       }
     }
   )
+  
+  #### modal for inputs missing ####
+  # observer for modal dialogs when some input is missing
+  observe({
+    if (input$mode_sel == 'Current' & input$point_grid_sel == 'Points' & input$process_button > 0) {
+      
+      if (any(!isTruthy(user_coords$df[1,1]), !isTruthy(user_coords$df[1,2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide at least one pair of coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$date_range_current[1]),
+              !isTruthy(input$date_range_current[2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Starting and ending dates must be provided."),
+          p("Please select the desired date range."),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+    if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Points' & input$process_button > 0) {
+      
+      if (any(!isTruthy(user_coords$df[1,1]), !isTruthy(user_coords$df[1,2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide at least one pair of coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$date_range_historical[1]),
+              !isTruthy(input$date_range_historical[2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Starting and ending dates must be provided."),
+          p("Please select the desired date range."),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+    if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Points' & input$process_button > 0) {
+      
+      if (any(!isTruthy(user_coords$df[1,1]), !isTruthy(user_coords$df[1,2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide at least one pair of coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$rcm), !isTruthy(input$rcp))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Regional Climate Model and Reproducible Concentration Pathway must be provided"),
+          p("Please select the desired RCM and RCP"),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+    if (input$mode_sel == 'Current' & input$point_grid_sel == 'Grid' & input$process_button > 0) {
+      
+      if (any(!isTruthy(input$longitude), !isTruthy(input$longitude_bottom),
+              !isTruthy(input$latitude), !isTruthy(input$latitude_bottom))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide upper left and bottom left coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$date_range_current[1]),
+              !isTruthy(input$date_range_current[2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Starting and ending dates must be provided."),
+          p("Please select the desired date range."),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+    if (input$mode_sel == 'Projection' & input$point_grid_sel == 'Grid' & input$process_button > 0) {
+      
+      if (any(!isTruthy(input$longitude), !isTruthy(input$longitude_bottom),
+              !isTruthy(input$latitude), !isTruthy(input$latitude_bottom))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide upper left and bottom left coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$rcm), !isTruthy(input$rcp))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Regional Climate Model and Reproducible Concentration Pathway must be provided"),
+          p("Please select the desired RCM and RCP"),
+          easyClose = TRUE
+        ))
+      }
+    }
+    
+    if (input$mode_sel == 'Historical' & input$point_grid_sel == 'Grid' & input$process_button > 0) {
+      
+      if (any(!isTruthy(input$longitude), !isTruthy(input$longitude_bottom),
+              !isTruthy(input$latitude), !isTruthy(input$latitude_bottom))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Coordinates haven't being selected"),
+          p("Please provide upper left and bottom left coordinates"),
+          easyClose = TRUE
+        ))
+      }
+      
+      if (any(!isTruthy(input$date_range_historical[1]),
+              !isTruthy(input$date_range_historical[2]))) {
+        showModal(modalDialog(
+          title = "Oooops!",
+          p("Starting and ending dates must be provided."),
+          p("Please select the desired date range."),
+          easyClose = TRUE
+        ))
+      }
+    }
+  })
   
   
   # debug
