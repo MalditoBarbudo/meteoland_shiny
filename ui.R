@@ -2,9 +2,16 @@
 ## Design and development by Miquel de Cáceres, Antoine Cabon and Víctor Granda
 
 # libraries
+# libraries
 library(shiny)
 library(leaflet)
+library(sp)
+library(htmltools)
 library(dygraphs)
+library(xts)
+library(ncdf4)
+# library(mapview)
+library(rgeos)
 library(shinythemes)
 
 # Navbar page layout. This is intended to offer a quick glance of the app, the
