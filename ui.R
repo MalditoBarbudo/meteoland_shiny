@@ -224,6 +224,9 @@ navbarPage(
               p("Please provide the upper left coordinates and the bottom right coordinates of the desired grid.")
             ),
             
+            p('Coordinates input must be in latitude/logitude Mercator ',
+              'projection, in decimal format'),
+            
             # selected coordinates output, we need a fluid row to put inline
             # the selected coordinates and the clear button. All of this is in
             # a conditional panel to show only if points are selected
