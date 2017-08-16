@@ -1026,7 +1026,8 @@ historical_grid_mode_process <- function(user_coords, user_dates,
 # mode and return the interpolated data fot that mode. This makes the server.R
 # file code more clean and it's better for maintenance.
 
-one_ring_to_dominate_all <- function(input, updateProgress = NULL,
+one_ring_to_dominate_all <- function(input, user_coords,
+                                     updateProgress = NULL,
                                      excludeRainFromStations = character(0)) {
   
   # In case of points mode

@@ -179,7 +179,7 @@ function(input, output, session) {
         progress$set(value = value, detail = detail)
       }
       
-      interpolated_data <- one_ring_to_dominate_all(input, updateProgress)
+      interpolated_data <- one_ring_to_dominate_all(input, user_coords, updateProgress)
       
       # return the interpolated data
       return(interpolated_data)
