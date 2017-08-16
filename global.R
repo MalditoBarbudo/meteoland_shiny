@@ -1019,7 +1019,155 @@ historical_grid_mode_process <- function(user_coords, user_dates,
   
 }
 
+################################################################################
+# Interpolated data wrapper function.
+# 
+# Here is where the if's must reside, one function that only check one for the
+# mode and return the interpolated data fot that mode. This makes the server.R
+# file code more clean and it's better for maintenance.
 
+one_ring_to_dominate_all <- function(input, updateProgress = NULL,
+                                     excludeRainFromStations = character(0)) {
+  
+  # In case of points mode
+  if (input$point_grid_sel == 'Points') {
+    
+    # in case of current
+    if (input$mode_sel == 'Current') {
+      
+      # check for requirements, no need to compute nothing if not all inputs are
+      # present
+      req(user_coords$df[1,1], user_coords$df[1,2],
+          input$date_range_current[1], input$date_range_current[1])
+      
+      # interpolated data
+      interpolated_data <- current_points_mode_process(
+        user_df = user_coords$df,
+        user_dates = input$date_range_current,
+        updateProgress = updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+    
+    # in case of historical
+    if (input$mode_sel == 'Historical') {
+      
+      # check for requirements (inputs)
+      req(user_coords$df[1,1], user_coords$df[1,2],
+          input$date_range_historical[1], input$date_range_historical[2])
+      
+      # interpolated data
+      interpolated_data <- historical_points_mode_process(
+        user_df = user_coords$df,
+        user_dates = input$date_range_historical,
+        updateProgress = updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+    
+    # in case of projection
+    if (input$mode_sel == 'Projection') {
+      
+      # check for requirements (inputs)
+      req(user_coords$df[1,1], user_coords$df[1,2],
+          input$rcm, input$rcp)
+      
+      # interpolated data
+      interpolated_data <- projection_points_mode_process(
+        user_df = user_coords$df,
+        rcm = input$rcm,
+        rcp = input$rcp,
+        updateProgress = updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+  }
+  
+  # in case of grid
+  if (input$point_grid_sel == 'Grid') {
+    
+    # in case of current
+    if (input$mode_sel == 'Current') {
+      
+      # check for requirements (inputs)
+      req(input$longitude, input$longitude_bottom, input$latitude,
+          input$latitude_bottom, input$date_range_current)
+      
+      # user_coords
+      grid_coords <- data.frame(
+        x = c(input$longitude, input$longitude_bottom),
+        y = c(input$latitude, input$latitude_bottom)
+      )
+      
+      # interpolated_data
+      interpolated_data <- current_grid_mode_process(
+        user_coords = grid_coords,
+        user_dates = input$date_range_current,
+        updateProgress = updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+    
+    # in case of projection
+    if (input$mode_sel == 'Projection') {
+      
+      # check for requirements
+      req(input$longitude, input$longitude_bottom, input$latitude,
+          input$latitude_bottom, input$rcm, input$rcp)
+      
+      # user_coords
+      grid_coords <- data.frame(
+        x = c(input$longitude, input$longitude_bottom),
+        y = c(input$latitude, input$latitude_bottom)
+      )
+      
+      # interpolated data
+      interpolated_data <- projection_grid_mode_process(
+        user_coords = grid_coords,
+        rcm = input$rcm,
+        rcp = input$rcp,
+        updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+    
+    # in case of historical
+    if (input$mode_sel == 'Historical') {
+      
+      # check for requirements (inputs)
+      req(input$longitude, input$longitude_bottom, input$latitude,
+          input$latitude_bottom,
+          input$date_range_historical[1], input$date_range_historical[2])
+      
+      # user_coords
+      grid_coords <- data.frame(
+        x = c(input$longitude, input$longitude_bottom),
+        y = c(input$latitude, input$latitude_bottom)
+      )
+      
+      # interpolated_data
+      interpolated_data <- historical_grid_mode_process(
+        user_coords = grid_coords,
+        user_dates = input$date_range_historical,
+        updateProgress
+      )
+      
+      # return
+      return(interpolated_data)
+    }
+  }
+  
+}
 
 ################################################################################
 # Download button functions. This functions check for the mode selected by the
