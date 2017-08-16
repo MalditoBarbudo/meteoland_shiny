@@ -21,10 +21,10 @@ source('global.R')
 function(input, output, session) {
   
   ## garbage collector to free memory at 1000 
-  observe({
-    invalidateLater(1000, session)
-    for (i in 1:10) {gc()}
-  })
+  # observe({
+  #   invalidateLater(1000, session)
+  #   for (i in 1:10) {gc()}
+  # })
   
   # objects needed to reactiveEvents and so on
   
