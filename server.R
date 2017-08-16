@@ -20,12 +20,6 @@ source('global.R')
 # server logic
 function(input, output, session) {
   
-  ## garbage collector to free memory at 1000 
-  # observe({
-  #   invalidateLater(1000, session)
-  #   for (i in 1:10) {gc()}
-  # })
-  
   #### user coords data frame ####
   # empty coordinates data frame, to be able to add clicks in the map and
   # manual inputs in the case of more than one coordinate pair
@@ -34,6 +28,40 @@ function(input, output, session) {
   user_coords$df <- data.frame(
     lat = numeric(0),
     lng =  numeric(0)
+  )
+  
+  #### record user coords ####
+  # observe event to record coordinates manually introduced
+  observeEvent(
+    eventExpr = input$append_coord_button,
+    handlerExpr = {
+      if (!is.na(input$latitude) & !is.na(input$longitude)) {
+        if (length(user_coords$df[,1]) < 10) {
+          coords_manual <- data.frame(lat = input$latitude,
+                                      lng = input$longitude)
+          user_coords$df <<- rbind(user_coords$df, coords_manual)
+        }
+      }
+    }
+  )
+  
+  #### selected user coords table ####
+  # output to show the user selected coordinates in the user input tab
+  output$user_coords <- renderTable(
+    expr = {user_coords$df},
+    digits = 4
+  )
+  
+  #### reset coords button ####
+  # logic for the reset button
+  observeEvent(
+    eventExpr = input$reset_coord_button,
+    handlerExpr = {
+      user_coords$df <<- data.frame(
+        lat = numeric(0),
+        lng =  numeric(0)
+      )
+    }
   )
   
   #### dinamic inputs ####
@@ -126,34 +154,6 @@ function(input, output, session) {
 
     # Return updated list of inputs
     inputTagList
-  })
-  
-  #### map output ####
-  output$map <- renderLeaflet({
-    leaflet() %>%
-      fitBounds(lng1 = -0.02, lat1 = 43,
-                lng2 = 3.68, lat2 = 40) %>%
-      addProviderTiles(providers$Esri.WorldImagery, group = 'Imagery') %>%
-      addProviderTiles(providers$OpenStreetMap,
-                       group = 'OSM') %>%
-      addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
-      addCircleMarkers(data = user_coords$df,
-                       radius = 3, color = 'red',
-                       label = 'User coordinates',
-                       group = 'User') %>%
-      addCircleMarkers(data = stations_data,
-                       radius = 3, color = 'yellow',
-                       label = ~htmlEscape(paste(st_network, St_Id,
-                                                 sep = ' - ')),
-                       group = 'Stations') %>%
-      addLayersControl(
-        baseGroups = c('Imagery', 'OSM', 'Toner Lite'),
-        overlayGroups = c('User', 'Stations'),
-        position = 'bottomright',
-        options = layersControlOptions(collapse = FALSE)
-      ) %>%
-      hideGroup("Stations") #%>%
-      # addMouseCoordinates(style = 'basic')
   })
   
   #### interpolated_data() ####
@@ -315,13 +315,41 @@ function(input, output, session) {
     }
   )
   
-  #### Download button logic ####
+  #### download button logic ####
   output$download_btn <- downloadHandler(
     filename = filename_function(input, interpolated_data()),
     content = function(file) {
       content_function(input, interpolated_data(), file)
     }
   )
+  
+  #### map output ####
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      fitBounds(lng1 = -0.02, lat1 = 43,
+                lng2 = 3.68, lat2 = 40) %>%
+      addProviderTiles(providers$Esri.WorldImagery, group = 'Imagery') %>%
+      addProviderTiles(providers$OpenStreetMap,
+                       group = 'OSM') %>%
+      addProviderTiles(providers$Stamen.TonerLite, group = "Toner Lite") %>%
+      addCircleMarkers(data = user_coords$df,
+                       radius = 3, color = 'red',
+                       label = 'User coordinates',
+                       group = 'User') %>%
+      addCircleMarkers(data = stations_data,
+                       radius = 3, color = 'yellow',
+                       label = ~htmlEscape(paste(st_network, St_Id,
+                                                 sep = ' - ')),
+                       group = 'Stations') %>%
+      addLayersControl(
+        baseGroups = c('Imagery', 'OSM', 'Toner Lite'),
+        overlayGroups = c('User', 'Stations'),
+        position = 'bottomright',
+        options = layersControlOptions(collapse = FALSE)
+      ) %>%
+      hideGroup("Stations") #%>%
+    # addMouseCoordinates(style = 'basic')
+  })
   
   #### dygraph outputs ####
   # temperature panel
@@ -368,6 +396,7 @@ function(input, output, session) {
       dyAxis("y", label = "PET [??]")
   })
   
+  #### topography output ####
   # topography info
   output$topo_info <- renderUI({
     
@@ -386,7 +415,7 @@ function(input, output, session) {
     lapply(topo_text, tags$p)
   })
   
-  #### grid plots ####
+  #### grid plots output ####
   # output for grid and current mode
   output$grid_plot <- renderPlot({
     
@@ -530,40 +559,6 @@ function(input, output, session) {
         }
       }
       
-    }
-  )
-  
-  #### record user coords ####
-  # observe event to record coordinates manually introduced
-  observeEvent(
-    eventExpr = input$append_coord_button,
-    handlerExpr = {
-      if (!is.na(input$latitude) & !is.na(input$longitude)) {
-        if (length(user_coords$df[,1]) < 10) {
-          coords_manual <- data.frame(lat = input$latitude,
-                                      lng = input$longitude)
-          user_coords$df <<- rbind(user_coords$df, coords_manual)
-        }
-      }
-    }
-  )
-  
-  #### Selected user coords table ####
-  # output to show the user selected coordinates in the user input tab
-  output$user_coords <- renderTable(
-    expr = {user_coords$df},
-    digits = 4
-  )
-  
-  #### reset coords button ####
-  # logic for the reset button
-  observeEvent(
-    eventExpr = input$reset_coord_button,
-    handlerExpr = {
-      user_coords$df <<- data.frame(
-        lat = numeric(0),
-        lng =  numeric(0)
-      )
     }
   )
   
