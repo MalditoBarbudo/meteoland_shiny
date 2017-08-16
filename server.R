@@ -26,10 +26,9 @@ function(input, output, session) {
   #   for (i in 1:10) {gc()}
   # })
   
-  # objects needed to reactiveEvents and so on
-  
-  # 1. empty coordinates data frame, to be able to add clicks in the map and
-  #    manual inputs in the case of more than one coordinate pair
+  #### user coords data frame ####
+  # empty coordinates data frame, to be able to add clicks in the map and
+  # manual inputs in the case of more than one coordinate pair
   user_coords <- reactiveValues()
   
   user_coords$df <- data.frame(
@@ -37,9 +36,9 @@ function(input, output, session) {
     lng =  numeric(0)
   )
   
+  #### dinamic inputs ####
   # First we need the dinamic UI to show the input options corresponding to the
   # selected mode
-  
   output$dinamic_inputs <- renderUI({
 
     # check for null inputs (that can freeze the app)
@@ -187,7 +186,6 @@ function(input, output, session) {
     }
   )
   
-  # dygraph outputs
   # coord_pair selector update
   observe({
     # input to trigger the update
@@ -335,7 +333,7 @@ function(input, output, session) {
     }
   )
   
-  
+  #### dygraph outputs ####
   # temperature panel
   output$temperature <- renderDygraph({
     # get the data
@@ -398,6 +396,7 @@ function(input, output, session) {
     lapply(topo_text, tags$p)
   })
   
+  #### grid plots ####
   # output for grid and current mode
   output$grid_plot <- renderPlot({
     
@@ -544,6 +543,7 @@ function(input, output, session) {
     }
   )
   
+  #### record user coords ####
   # observe event to record coordinates manually introduced
   observeEvent(
     eventExpr = input$append_coord_button,
@@ -558,12 +558,14 @@ function(input, output, session) {
     }
   )
   
+  #### Selected user coords table ####
   # output to show the user selected coordinates in the user input tab
   output$user_coords <- renderTable(
     expr = {user_coords$df},
     digits = 4
   )
   
+  #### reset coords button ####
   # logic for the reset button
   observeEvent(
     eventExpr = input$reset_coord_button,
@@ -575,6 +577,7 @@ function(input, output, session) {
     }
   )
   
+  #### modals for grid sizes and date ranges ####
   # observeEvent for the modal dialogs about grid sizes and data ranges not
   # allowed
   observeEvent(
