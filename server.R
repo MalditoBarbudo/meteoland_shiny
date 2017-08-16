@@ -186,38 +186,33 @@ function(input, output, session) {
     }
   )
   
+  #### update output selectors ####
   # coord_pair selector update
-  observe({
-    # input to trigger the update
-    if (input$process_button > 0) {
+  observeEvent(
+    eventExpr = input$process_button,
+    handlerExpr = {
       
       # In case of points, we update the radioButtons input for coordinate
       # selection
       if (input$point_grid_sel == 'Points') {
-        
         # requirements to met for this mode (i.e. inputs needed)
         req(user_coords$df)
         
-        # update the selector. We use isolate to avoid the crash of the app if the
-        # user go back and press the reset button
-        isolate({
-          
-          # change the active tab to the output tab
-          updateTabsetPanel(
-            session,
-            inputId = 'shiny_tabs',
-            selected = 'Data output'
-          )
-          
-          updateRadioButtons(
-            session,
-            inputId = 'coord_vis',
-            label = 'Select a coordinate pair to previsualize the data',
-            choiceNames = paste(round(user_coords$df$lat, 2),
-                                round(user_coords$df$lng, 2), sep = ' / '),
-            choiceValues = row.names(user_coords$df)
-          )
-        })
+        # change the active tab to the output tab
+        updateTabsetPanel(
+          session,
+          inputId = 'shiny_tabs',
+          selected = 'Data output'
+        )
+        
+        updateRadioButtons(
+          session,
+          inputId = 'coord_vis',
+          label = 'Select a coordinate pair to previsualize the data',
+          choiceNames = paste(round(user_coords$df$lat, 2),
+                              round(user_coords$df$lng, 2), sep = ' / '),
+          choiceValues = row.names(user_coords$df)
+        )
       }
       
       if (input$point_grid_sel == 'Grid') {
@@ -226,104 +221,99 @@ function(input, output, session) {
         
         # current
         if (input$mode_sel == 'Current') {
-          isolate({
-            
-            # change the active tab to the output tab
-            updateTabsetPanel(
-              session,
-              inputId = 'shiny_tabs',
-              selected = 'Data output'
-            )
-            
-            # variable names in the processed data
-            grid_var_names <- names(interpolated_data()@data[[1]][-1])
-            grid_dates <- as.character(interpolated_data()@dates)
-            
-            # update the var selector
-            updateSelectInput(
-              session,
-              inputId = 'grid_var_sel',
-              label = 'Select a variable to visualize',
-              choices = grid_var_names
-            )
-            
-            # update the date selector
-            updateDateInput(
-              session,
-              inputId = 'grid_date_sel',
-              value = grid_dates[1],
-              min = grid_dates[1], max = tail(grid_dates, 1)
-            )
-          })
+          
+          # change the active tab to the output tab
+          updateTabsetPanel(
+            session,
+            inputId = 'shiny_tabs',
+            selected = 'Data output'
+          )
+          
+          # variable names in the processed data
+          grid_var_names <- names(interpolated_data()@data[[1]][-1])
+          grid_dates <- as.character(interpolated_data()@dates)
+          
+          # update the var selector
+          updateSelectInput(
+            session,
+            inputId = 'grid_var_sel',
+            label = 'Select a variable to visualize',
+            choices = grid_var_names
+          )
+          
+          # update the date selector
+          updateDateInput(
+            session,
+            inputId = 'grid_date_sel',
+            value = grid_dates[1],
+            min = grid_dates[1], max = tail(grid_dates, 1)
+          )
         }
         
         # projection
         if (input$mode_sel == 'Projection' && !is.character(interpolated_data())) {
-          isolate({
-            
-            # change the active tab to the output tab
-            updateTabsetPanel(
-              session,
-              inputId = 'shiny_tabs',
-              selected = 'Data output'
-            )
-            
-            # get the variables names
-            grid_var_names <- names(interpolated_data()$res_list)
-            
-            # update the var selector
-            updateSelectInput(
-              session,
-              inputId = 'grid_var_sel_proj',
-              label = 'Select a variable to visualize',
-              choices = grid_var_names
-            )
-            
-            # update the date selector
-            updateSelectizeInput(
-              session,
-              inputId = 'grid_date_sel_proj',
-              label = 'Select a date to visualize',
-              choices = seq(as.Date('2006-01-01'), as.Date('2100-12-01'),
-                            by = 'month')
-            )
-          })
+          
+          # change the active tab to the output tab
+          updateTabsetPanel(
+            session,
+            inputId = 'shiny_tabs',
+            selected = 'Data output'
+          )
+          
+          # get the variables names
+          grid_var_names <- names(interpolated_data()$res_list)
+          
+          # update the var selector
+          updateSelectInput(
+            session,
+            inputId = 'grid_var_sel_proj',
+            label = 'Select a variable to visualize',
+            choices = grid_var_names
+          )
+          
+          # update the date selector
+          updateSelectizeInput(
+            session,
+            inputId = 'grid_date_sel_proj',
+            label = 'Select a date to visualize',
+            choices = seq(as.Date('2006-01-01'), as.Date('2100-12-01'),
+                          by = 'month')
+          )
         }
         
         # historical
         if (input$mode_sel == 'Historical' && !is.character(interpolated_data())) {
-          isolate({
-            # change the active tab to the output tab
-            updateTabsetPanel(
-              session,
-              inputId = 'shiny_tabs',
-              selected = 'Data output'
-            )
-            
-            # get the variables names
-            grid_var_names <- names(interpolated_data()$res_list)
-            
-            # update the var selector
-            updateSelectInput(
-              session,
-              inputId = 'grid_var_sel_hist',
-              label = 'Select a variable to visualize',
-              choices = grid_var_names
-            )
-            
-            # update the date selector
-            updateDateInput(
-              session,
-              inputId = 'grid_date_sel_hist',
-              value = input$date_range_historical[1],
-              min = input$date_range_historical[1],
-              max = input$date_range_historical[2]
-            )
-          })
+          
+          # change the active tab to the output tab
+          updateTabsetPanel(
+            session,
+            inputId = 'shiny_tabs',
+            selected = 'Data output'
+          )
+          
+          # get the variables names
+          grid_var_names <- names(interpolated_data()$res_list)
+          
+          # update the var selector
+          updateSelectInput(
+            session,
+            inputId = 'grid_var_sel_hist',
+            label = 'Select a variable to visualize',
+            choices = grid_var_names
+          )
+          
+          # update the date selector
+          updateDateInput(
+            session,
+            inputId = 'grid_date_sel_hist',
+            value = input$date_range_historical[1],
+            min = input$date_range_historical[1],
+            max = input$date_range_historical[2]
+          )
         }
       }
     }
-  })
+  )
   
   #### Download button logic ####
   output$download_btn <- downloadHandler(
