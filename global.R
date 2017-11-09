@@ -1357,11 +1357,11 @@ qa_list <- vector('list', length(qa_years))
 
 for (i in 1:length(qa_years)) {
   qa_list[[i]] <- readRDS(
-    # file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
-    #           'MeteorologyInterpolationData', 'CrossValidations',
-    #           paste0('CV_', qa_years[[i]], '.rds'))
-    paste0('/run/user/1000/gvfs/smb-share:server=serverprocess,share=miquel/Datasets/Climate/Products/MeteorologyInterpolationData/CrossValidations/',
-           paste0('CV_', qa_years[[i]], '.rds'))
+    file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
+              'MeteorologyInterpolationData', 'CrossValidations',
+              paste0('CV_', qa_years[[i]], '.rds'))
+    # paste0('/run/user/1000/gvfs/smb-share:server=serverprocess,share=miquel/Datasets/Climate/Products/MeteorologyInterpolationData/CrossValidations/',
+    #        paste0('CV_', qa_years[[i]], '.rds'))
   )
   
   qa_sum[[i]] <- summary(qa_list[[i]])
