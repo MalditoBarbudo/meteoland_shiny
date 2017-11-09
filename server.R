@@ -8,8 +8,9 @@ library(htmltools)
 library(dygraphs)
 library(xts)
 library(ncdf4)
-# library(mapview)
+library(ggplot2)
 library(rgeos)
+library(DT)
 
 # load needed data and functions
 load('Data/stations_data.RData')
@@ -748,7 +749,56 @@ function(input, output, session) {
   })
   
   
-  # debug
+  #### QA ####
+  
+  output$qa_temporal_var <- renderPlot({
+    
+    vals <- numeric(0)
+    for (i in 1:length(qa_years)) {
+      vals[[i]] <- qa_sum[[i]][input$qa_var, input$qa_stat]
+    }
+    
+    qa_temporal_plot <- data.frame(
+      stringsAsFactors = FALSE,
+      Year = qa_years,
+      Values = vals
+    ) %>%
+      ggplot(aes(x = Year, y = Values)) +
+      geom_line() +
+      labs(y = paste0(input$qa_stat, " [", input$qa_var, "]"))
+    
+    if (input$qa_stat == 'Bias') {
+      qa_temporal_plot +
+        geom_hline(yintercept = 0, colour = 'darkgrey')
+    } else {
+      qa_temporal_plot
+    }
+    
+  })
+  
+  output$qa_stats_table <- DT::renderDataTable({
+    
+    qa_stats_cv <- round(qa_sum[[which(qa_years == input$qa_year)]], 3)
+    
+    DT::datatable(
+      qa_stats_cv,
+      extensions = 'FixedColumns',
+      options = list(dom = 't',
+                     scrollX = TRUE, fixedColumns = TRUE,
+                     pageLength = 15)
+    )
+  })
+  
+  output$qa_maps <- renderPlot({
+    
+    
+    
+  })
+  
+  
+  
+  
+  #### debug ####
   # output$clicked <- renderPrint(as.data.frame(input$map_click))
   # output$lat_debug <- renderPrint(input$latitude)
   # output$long_debug <- renderPrint(input$longitude)
@@ -767,6 +817,7 @@ function(input, output, session) {
   #   which(interpolated_dates == as.character(input$grid_date_sel))
   # })
   # output$debug_date_sel_proj <- renderPrint(input$grid_date_sel_proj)
+  # output$qa_text <- renderText({qa_vars})
   
   
 }

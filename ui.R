@@ -483,6 +483,62 @@ navbarPage(
         # includeMarkdown('Docs/app_user_guide.Rmd')
         tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
                     src = "app_user_guide.pdf#zoom=120")
+      ),
+      
+      # Quality assesment
+      tabPanel(
+        title = 'Quality assesment', icon = icon('bug'),
+        
+        # a little space
+        br(),
+        
+        # decription text
+        p('These are the cross-validation results for the process of interpolating',
+          ' daily meteorological data. Validation was done by making predictions for',
+          ' the location of each metereological station after excluding its data from',
+          ' the model. Cross-validation was conducted for each year in the 1976-2016',
+          ' period separately.'),
+        
+        # a little space
+        br(),
+        
+        # inputs
+        wellPanel(
+          splitLayout(
+            cellWidths = c('50%', '25%', '25%'),
+            selectInput('qa_year', 'Year:', 1976:2016, 1976, width = '20%'),
+            selectInput('qa_var', 'Variable:', qa_vars, width = '80%'),
+            selectInput('qa_stat', 'Statistic:', qa_statistics, 'MAE', width = '80%')
+          )
+        ),
+        
+        # outputs
+        fluidRow(
+          
+          column(
+            6,
+            h3('Year Statistics Table:'),
+            DT::dataTableOutput('qa_stats_table', width = '95%')
+          ),
+          
+          column(
+            6,
+            h3('Statistic Temporal Variation:'),
+            plotOutput('qa_temporal_var')
+          )
+        ),
+        
+        # a little space
+        br(),
+        
+        fluidRow(
+          
+          column(
+            12,
+            h3('Stations Bubble Plots by Statistic'),
+            plotOutput('qa_maps')
+          )
+        )
       )
     )
   ),
