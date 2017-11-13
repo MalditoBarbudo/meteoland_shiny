@@ -755,8 +755,12 @@ function(input, output, session) {
     
     vals <- numeric(0)
     for (i in 1:length(qa_years)) {
-      vals[[i]] <- qa_sum[[i]][input$qa_var, input$qa_stat]
+      vals[i] <- qa_sum[[i]][input$qa_var, input$qa_stat]
     }
+    
+    point_data <- data.frame(stringsAsFactors = FALSE,
+                             Year_sel = as.numeric(input$qa_year),
+                             Value_sel = vals[which(qa_years == input$qa_year)])
     
     qa_temporal_plot <- data.frame(
       stringsAsFactors = FALSE,
@@ -765,6 +769,8 @@ function(input, output, session) {
     ) %>%
       ggplot(aes(x = Year, y = Values)) +
       geom_line() +
+      geom_point(aes(x = Year_sel, y = Value_sel),
+                 data = point_data, colour = 'red', size = 4) +
       labs(y = paste0(input$qa_stat, " [", input$qa_var, "]"))
     
     if (input$qa_stat == 'Bias') {
@@ -783,16 +789,38 @@ function(input, output, session) {
     DT::datatable(
       qa_stats_cv,
       extensions = 'FixedColumns',
+      class = 'compact',
       options = list(dom = 't',
                      scrollX = TRUE, fixedColumns = TRUE,
                      pageLength = 15)
     )
   })
   
+  
+  qa_map_data <- reactive({
+    
+    all_stations_data <- stations_data@data
+    year_data <- qa_list[[which(qa_years == input$qa_year)]][["stations"]]
+    year_data$St_Id <- row.names(year_data)
+    
+    map_data <- dplyr::left_join(all_stations_data, year_data, by = 'St_Id') %>%
+      dplyr::bind_cols(as.data.frame(stations_data@coords)) %>%
+      dplyr::select(lat, long, st_network, input$qa_map_var)
+    
+    map_data[['Var']] <- map_data[[4]]
+    map_data %>%
+      dplyr::mutate(Sign = dplyr::if_else(Var < 0, 'Neg', 'Pos'))
+  })
+  
+  
+  
   output$qa_maps <- renderPlot({
     
-    
-    
+    qa_map_data() %>%
+      ggplot(aes(x = long, y = lat, shape = st_network, size = abs(Var))) +
+      geom_point(aes(colour = Sign), alpha = 0.5) +
+      scale_color_manual(values = c("red", "green"), breaks = NULL) +
+      coord_cartesian()
   })
   
   
@@ -817,7 +845,24 @@ function(input, output, session) {
   #   which(interpolated_dates == as.character(input$grid_date_sel))
   # })
   # output$debug_date_sel_proj <- renderPrint(input$grid_date_sel_proj)
-  # output$qa_text <- renderText({qa_vars})
+  # output$qa_text <- renderPrint({
+  #   vals <- numeric(0)
+  #   for (i in 1:length(qa_years)) {
+  #     vals[i] <- qa_sum[[i]][input$qa_var, input$qa_stat]
+  #   }
+  #   
+  #   point_data <- data.frame(stringsAsFactors = FALSE,
+  #                            Year_sel = as.numeric(input$qa_year),
+  #                            Value_sel = vals[which(qa_years == input$qa_year)])
+  #   
+  #   qa_temporal_plot <- data.frame(
+  #     stringsAsFactors = FALSE,
+  #     Year = qa_years,
+  #     Values = vals
+  #   )
+  #   
+  #   str(qa_temporal_plot)
+  # })
   
   
 }

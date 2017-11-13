@@ -502,43 +502,97 @@ navbarPage(
         # a little space
         br(),
         
-        # inputs
-        wellPanel(
-          splitLayout(
-            cellWidths = c('50%', '25%', '25%'),
-            selectInput('qa_year', 'Year:', 1976:2016, 1976, width = '20%'),
-            selectInput('qa_var', 'Variable:', qa_vars, width = '80%'),
-            selectInput('qa_stat', 'Statistic:', qa_statistics, 'MAE', width = '80%')
-          )
-        ),
-        
-        # outputs
         fluidRow(
           
+          # inputs
           column(
-            6,
-            h3('Year Statistics Table:'),
-            DT::dataTableOutput('qa_stats_table', width = '95%')
+            2,
+            wellPanel(
+              br(), br(),
+              selectInput('qa_year', 'Year:', 1976:2016, 1976),
+              br(),br(),br(),br(),br(),
+              br(),br(),br(),br(),br(),
+              br(),br(),br(),br(),br(),
+              br(),br(),br(),br(),br(),
+              selectInput('qa_var', 'Variable:', qa_vars),
+              selectInput('qa_stat', 'Statistic:', qa_statistics, 'MAE'),
+              selectInput('qa_map_var', 'Map Variable:',
+                          c("MinTemperature.Bias", "MinTemperature.MAE",
+                            "MaxTemperature.Bias", "MaxTemperature.MAE",
+                            "TemperatureRange.Bias", "TemperatureRange.MAE",
+                            "RelativeHumidity.Bias", "RelativeHumidity.MAE",
+                            "Radiation.Bias", "Radiation.MAE", "PrecFreq.Obs",
+                            "PrecFreq.Pred", "PrecDays.Bias", "PrecDays.RelBias",
+                            "TotalPrec.Obs", "TotalPrec.Pred", "TotalPrec.Bias",
+                            "TotalPrec.RelBias"), 'MinTemperature.MAE')
+            )
           ),
           
+          # outputs
           column(
-            6,
-            h3('Statistic Temporal Variation:'),
-            plotOutput('qa_temporal_var')
-          )
-        ),
-        
-        # a little space
-        br(),
-        
-        fluidRow(
-          
-          column(
-            12,
-            h3('Stations Bubble Plots by Statistic'),
-            plotOutput('qa_maps')
+            10,
+            # table
+            h3('Year Statistics Table:'),
+            DT::dataTableOutput('qa_stats_table', width = '75%'),
+            
+            # a little space
+            br(),
+            
+            fluidRow(
+              column(
+                6,
+                # stat variation plot
+                h3('Statistic Temporal Variation:'),
+                plotOutput('qa_temporal_var', width = '100%')
+              ),
+              
+              column(
+                6,
+                # error map
+                h3('Stations Bubble Plot by Statistic and Variable'),
+                plotOutput('qa_maps', width = '100%')
+              )
+            )
           )
         )
+        
+        # # inputs
+        # wellPanel(
+        #   splitLayout(
+        #     cellWidths = c('50%', '25%', '25%'),
+        #     selectInput('qa_year', 'Year:', 1976:2016, 1976, width = '20%'),
+        #     selectInput('qa_var', 'Variable:', qa_vars, width = '80%'),
+        #     selectInput('qa_stat', 'Statistic:', qa_statistics, 'MAE', width = '80%')
+        #   )
+        # ),
+        # 
+        # # outputs
+        # fluidRow(
+        #   
+        #   column(
+        #     6,
+        #     h3('Year Statistics Table:'),
+        #     DT::dataTableOutput('qa_stats_table', width = '95%')
+        #   ),
+        #   
+        #   column(
+        #     6,
+        #     h3('Statistic Temporal Variation:'),
+        #     plotOutput('qa_temporal_var')
+        #   )
+        # ),
+        # 
+        # # a little space
+        # br(),
+        # 
+        # fluidRow(
+        #   
+        #   column(
+        #     12,
+        #     h3('Stations Bubble Plots by Statistic'),
+        #     plotOutput('qa_maps')
+        #   )
+        # )
       )
     )
   ),
