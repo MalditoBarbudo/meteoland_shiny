@@ -316,6 +316,21 @@ function(input, output, session) {
     }
   )
   
+  # Download helpers (Vignettes) ####
+  
+  output$simpleguide_dwn <- downloadHandler(
+    filename = 'SimpleUserGuide.pdf',
+    content = function(file) {
+      file.copy('www/_main.pdf', file)
+    }
+  )
+  output$advancedguide_dwn <- downloadHandler(
+    filename = 'AdvancedUserGuide.pdf',
+    content = function(file) {
+      file.copy('www/Meteorology.pdf', file)
+    }
+  )
+  
   #### download button logic ####
   output$download_btn <- downloadHandler(
     filename = filename_function(input, interpolated_data()),

@@ -129,18 +129,51 @@ navbarPage(
   ),
   
   # meteoland R package manual tab
+  # tabPanel(
+  #   title = 'User Guide', icon = icon('book'),
+  #   
+  #   # a little space
+  #   br(),
+  #   
+  #   # a nice document explaining how to use the app
+  #   # includeMarkdown('Docs/app_user_guide.Rmd')
+  #   tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
+  #               src = "_main.pdf#zoom=120")
+  # ),
+  # 
+  # Doc and Vignettes ####
   tabPanel(
-    title = 'User Guide', icon = icon('book'),
+    title = 'Documentation & Vignettes', icon = icon('book'),
     
     # a little space
     br(),
     
-    # a nice document explaining how to use the app
-    # includeMarkdown('Docs/app_user_guide.Rmd')
-    tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
-                src = "_main.pdf#zoom=120")
+    fluidRow(
+      
+      column(
+        2,
+        downloadButton('simpleguide_dwn', label = 'Simple user guide')
+      ),
+      
+      column(
+        3,
+        p('Simple guide to start using the package')
+      ),
+      
+      
+      
+      column(
+        2, offset = 1,
+        downloadButton('advancedguide_dwn', label = 'Advanced user guide')
+      ),
+      
+      column(
+        3,
+        p('Detailed description of package functions and mathematical',
+          'calculations of each procedure')
+      )
+    )
   ),
-  
   # meteoland R package examples (this will be included in the package manual)
   # tabPanel(
   #   title = 'Examples', icon = icon('flask'),
