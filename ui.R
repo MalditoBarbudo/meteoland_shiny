@@ -23,7 +23,8 @@ navbarPage(
   id = 'navbar_meteoland',
   theme = shinytheme('sandstone'),
   
-  # About tab (tabwith r package description, disclaimer and so on...)
+  #
+  # Welcome tab ####
   tabPanel(
     title = 'Welcome', icon = icon('pagelines'),
     
@@ -172,6 +173,22 @@ navbarPage(
         p('Detailed description of package functions and mathematical',
           'calculations of each procedure')
       )
+    ),
+    
+    br(), br(), br(),
+    
+    fluidRow(
+      
+      column(
+        2,
+        downloadButton('appguide_dwn', label = 'App. user guide')
+      ),
+      
+      column(
+        3,
+        p('A short guide to learn to use the shiny app included in this',
+          'web page')
+      )
     )
   ),
   # meteoland R package examples (this will be included in the package manual)
@@ -183,6 +200,8 @@ navbarPage(
   #   includeMarkdown('Docs/Examples.Rmd')
   # ),
   
+  #
+  # Shiny app tab ####
   tabPanel(
     title = 'Shiny App', icon = icon('television'),
     
@@ -190,7 +209,7 @@ navbarPage(
     tabsetPanel(
       type = 'pills', id = 'shiny_tabs',
       
-      # user input tab
+      # user input tab ####
       tabPanel(
         title = 'User input', icon = icon('keyboard-o'),
         
@@ -335,7 +354,7 @@ navbarPage(
         )
       ),
       
-      # data download tab
+      # data download tab ####
       tabPanel(
         title = 'Data output', icon = icon('area-chart'),
         
@@ -505,20 +524,21 @@ navbarPage(
         )
       ),
       
-      # app guide tab
-      tabPanel(
-        title = 'App user guide', icon = icon('book'),
-        
-        # a little space
-        br(),
-        
-        # a nice document explaining how to use the app
-        # includeMarkdown('Docs/app_user_guide.Rmd')
-        tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
-                    src = "app_user_guide.pdf#zoom=120")
-      ),
+      #
+      # App guide tab ####
+      # tabPanel(
+      #   title = 'App user guide', icon = icon('book'),
+      #   
+      #   # a little space
+      #   br(),
+      #   
+      #   # a nice document explaining how to use the app
+      #   # includeMarkdown('Docs/app_user_guide.Rmd')
+      #   tags$iframe(style = "height:600px; width:80%; scrolling=yes", 
+      #               src = "app_user_guide.pdf#zoom=120")
+      # ),
       
-      # Quality assesment
+      # Quality assesment tab ####
       tabPanel(
         title = 'Quality assesment', icon = icon('bug'),
         
@@ -630,7 +650,9 @@ navbarPage(
     )
   ),
   
-  # About tab (tabwith r package description, disclaimer and so on...)
+  #
+  # About tab ####
+  # (tabwith r package description, disclaimer and so on...) 
   tabPanel(
     title = 'About', icon = icon('info-circle'),
     

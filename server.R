@@ -330,6 +330,12 @@ function(input, output, session) {
       file.copy('www/Meteorology.pdf', file)
     }
   )
+  output$appguide_dwn <- downloadHandler(
+    filename = 'AppUserGuide.pdf',
+    content = function(file) {
+      file.copy('www/app_user_guide.pdf', file)
+    }
+  )
   
   #### download button logic ####
   output$download_btn <- downloadHandler(
