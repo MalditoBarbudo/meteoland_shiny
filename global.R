@@ -274,26 +274,39 @@ historical_points_mode_process <- function(user_df, user_dates,
   # STEP 1 GET THE  INTERPOLATOR DATA
   if (is.function(updateProgress)) {
     updateProgress(
-      detail = 'Building the interpolation object',
+      detail = 'Loading interpolation objects',
       value = 0.05
     )
   }
   
-  # load the interpolator mother data
-  load(file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
-                 'MeteorologyInterpolationData',
-                 'Interpolator_Mother.rda'))
   
   # subset by the user dates
   datevec <- as.Date(user_dates)[[1]]:as.Date(user_dates)[[2]]
   datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
-  
+
   ## workaround issue 3
   if (length(datevec) == 1) {
     datevec <- c(datevec[[1]] - 1, datevec, datevec[[1]] + 1)
   }
   
-  interpolator <- subsample(interpolator, dates = as.Date(datevec))
+  # get years
+  years <- unique(format(datevec, "%Y"))
+  yearFactor <- cut(datevec, breaks="years")
+  yearLevels <-levels(yearFactor)
+  
+  #load interpolators
+  intvec <- vector("list", length(years))
+  for(i in 1:length(years)) {
+    intvec[[i]] = readRDS(file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
+                                    'MeteorologyInterpolationData',
+                                    paste0('interpolator_',years[[i]],'.rds')))
+  }
+  
+  # load the interpolator mother data
+  # load(file.path('/home', 'miquel', 'Datasets', 'Climate', 'Products',
+  #                'MeteorologyInterpolationData',
+  #                'Interpolator_Mother.rda'))
+  # interpolator <- subsample(interpolator, dates = as.Date(datevec))
   
   # STEP 2 BUILD THE TOPOGRAPHY OBJECT
   if (is.function(updateProgress)) {
@@ -306,42 +319,54 @@ historical_points_mode_process <- function(user_df, user_dates,
   user_topo <- getTopographyObject(user_df)
   
   # STEP 3 PERFORMING THE INTERPOLATION
-  if (is.function(updateProgress)) {
-    updateProgress(
-      detail = 'Starting the interpolation process (this can take a while)',
-      value = 0.45
+  
+  intresvec <- vector("list", length(years))
+  for(i in 1:length(years)) {
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Interpolation for year ', years[i]),
+        value = 0.45
+      )
+    }
+    intresvec[[i]] <-interpolationpoints(
+      object = intvec[[i]],
+      points = user_topo,
+      dates = datevec[as.character(yearFactor)==yearLevels[i]],
+      verbose = FALSE
     )
   }
   
   # we are gonna slice the user coordinates to be able to show the progress more
   # dinamically:
+  
   # vector to store the interpolated data for each coordinate
   res_vec <- vector('list', length(user_topo@coords[,1]))
-  
   # loop to iterate between coordinates and perform the interpolation
   for (i in 1:length(user_topo@coords[,1])) {
     # progress updates
     if (is.function(updateProgress)) {
       updateProgress(
         detail = paste0('Processing coordinates pair ', i, ' of ',
-                        length(user_topo@coords[,1]), ' (This can take several minutes)'),
+                        length(user_topo@coords[,1])),
         n_coords = length(user_topo@coords[,1])
       )
     }
     
     # interpolation, but storing only the data
-    res_vec[[i]] <- interpolationpoints(
-      object = interpolator,
-      points = user_topo[i,],
-      verbose = FALSE
-    )@data[[1]]
+    res_vec[[i]] <- intresvec[[1]]@data[[i]]
+    if(length(years)>1) {
+      for(j in 2:length(years)) {
+        res_vec[[i]] <- rbind(res_vec[[i]], intresvec[[j]]@data[[i]])
+      }
+    }
   }
+  
   
   # now we build the spatialpointsmeteorology object
   res <- SpatialPointsMeteorology(
     points = user_topo,
     data = res_vec,
-    dates = interpolator@dates
+    dates = datevec
   )
   
   return(res)

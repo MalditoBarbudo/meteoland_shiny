@@ -88,7 +88,7 @@ function(input, output, session) {
         'date_range_historical',
         label = 'Select the date or date range',
         start = NA, end = NA,
-        min = '1976-01-01', max = '2016-12-31',
+        min = '1976-01-01', max = '2017-12-31',
         startview = 'decade'
       )
 
@@ -415,7 +415,7 @@ function(input, output, session) {
       dyLegend(show = 'onmouseover', hideOnMouseOut = TRUE, width = 400) %>%
       dySeries("Precipitation", axis = 'y2') %>%
       dyAxis("y2", label = "Precipitation [mm]") %>%
-      dyAxis("y", label = "PET [??]")
+      dyAxis("y", label = "PET [mm]")
   })
   
   #### topography output ####
