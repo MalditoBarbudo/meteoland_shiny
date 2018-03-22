@@ -108,14 +108,17 @@ current_points_mode_process <- function(user_df, user_dates,
                                         excludeRainFromStations = character(0),
                                         updateProgress = NULL) {
   
-  # STEP 1 BUILD THE INTERPOLATOR OBJECT
+  
+  # STEP 1 BUILD THE TOPOGRAPHY OBJECT
   if (is.function(updateProgress)) {
     updateProgress(
-      detail = 'Building the interpolation object',
-      value = 0.05
+      detail = 'Building the topography object',
+      value = 0.01
     )
   }
+  user_topo <- getTopographyObject(user_df)
   
+  # STEP 2 BUILD THE INTERPOLATOR OBJECT
   
   # get the default parameters for the MetereologyInterpolationData object
   params <- defaultInterpolationParams()
@@ -126,75 +129,75 @@ current_points_mode_process <- function(user_df, user_dates,
   datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
   ndays <- length(datevec)
   
+  
   # load the metereological files
-  day_data <- vector('list', ndays)
-  for (i in seq_along(datevec)) {
-    # files
-    day_data[[i]] <- readmeteorologypoint(
-      file.path('/home', 'miquel', 'Datasets', 'Climate', 'Sources', 'AEMET',
-                'Download', 'DailyCAT',
-                paste0(as.character(datevec[[i]]), '.txt'))
+  aemet_data = vector("list", length(datevec))
+  codes = character(0)
+  coordx = numeric(0)
+  coordy = numeric(0)
+  stations_elevation = numeric(0)
+  varnames = c("DOY", "MeanTemperature", "MinTemperature", 
+               "MaxTemperature", "Precipitation", "MeanRelativeHumidity", 
+               "MinRelativeHumidity", "MaxRelativeHumidity", "Radiation", 
+               "WindSpeed", "WindDirection")
+  for(i in 1:ndays) {
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Reading data: ', as.character(datevec[i])),
+        value = 0.05
+      )
+    }
+    # get current year
+    year <- format(datevec[[i]],"%Y")
+    file = file.path('/home', 'miquel', 'Datasets', 'Climate', 'Sources', 'AEMET',
+                     'Download', year,
+                     paste0(as.character(datevec[i]), '.txt'))
+    # print(file)
+    if(file.exists(file)) {
+      df = read.table(file, sep="\t", header=TRUE)
+      newst = !(rownames(df) %in% codes)
+      if(sum(newst)>0) {
+        if(("coords.x1" %in% names(df)) && ("coords.x2" %in% names(df)) && ("elevation" %in% names(df))) {
+          codes = c(codes, rownames(df)[newst])
+          coordx = c(coordx, df$coords.x1[newst])
+          coordy = c(coordy, df$coords.x2[newst])
+          stations_elevation = c(stations_elevation, df$elevation[newst])
+        }
+        else if(("long" %in% names(df)) && ("lat" %in% names(df)) && ("elevation" %in% names(df))) {
+          codes = c(codes, rownames(df)[newst])
+          coordx = c(coordx, df$long[newst])
+          coordy = c(coordy, df$lat[newst])
+          stations_elevation = c(stations_elevation, df$elevation[newst])
+        }
+      }
+    } else {#Add missing date data
+      df = data.frame(matrix(NA, nrow = length(codes), ncol=length(varnames)))
+      row.names(df) = codes
+    }
+    aemet_data[[i]] = df
+  }
+  
+  if(is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Merging daily data',
+      value = 0.10
     )
-    # codes
-    codes <- row.names(day_data[[i]])
-    # excluded codes
-    excodes <- codes[codes %in% excludeRainFromStations]
-    # NAs to excluded (apply quality check results)
-    day_data[[i]][excodes, 'Precipitation'] <- NA
   }
-  
-  # get general info needed later
-  stations_codes <- row.names(day_data[[1]])
-  stations_elevation <- day_data[[1]]$elevation
-  stations_slope <- rep(0, length(stations_elevation))
-  stations_aspect <- rep(0, length(stations_elevation))
-  stations_coords <- cbind(day_data[[1]]$coords.x1, day_data[[1]]$coords.x2)
-  stations_coords_sp <- SpatialPoints(
-    stations_coords, CRS("+proj=longlat +datum=WGS84")
-  )
-  station_coords_utm <- spTransform(
-    stations_coords_sp,
-    CRS("+proj=utm +zone=31 +ellps=WGS84 +datum=WGS84 +units=m +towgs84=0,0,0")
-  )
-  
-  stations_n <- length(stations_elevation)
-  
-  # reshape the data to build the MetereologyInterpolationData object
-  MinTemperature <- matrix(
-    NA, nrow = stations_n, ncol = ndays,
-    dimnames = list(stations_codes, as.character(datevec))
-  )
-  MaxTemperature <- MinTemperature
-  Precipitation <- MinTemperature
-  RelativeHumidity <- MinTemperature
-  Radiation <- MinTemperature
-  WindSpeed <- MinTemperature
-  WindDirection <- MinTemperature
-  
-  # fill the data
-  for (i in seq_along(datevec)) {
-    MinTemperature[,i] <- day_data[[i]][stations_codes, 'MinTemperature']
-    MaxTemperature[,i] <- day_data[[i]][stations_codes, 'MaxTemperature']
-    Precipitation[,i] <- day_data[[i]][stations_codes, 'Precipitation']
-    RelativeHumidity[,i] <- day_data[[i]][stations_codes, 'MeanRelativeHumidity']
-    Radiation[,i] <- day_data[[i]][stations_codes, 'Radiation']
-    WindSpeed[,i] <- day_data[[i]][stations_codes, 'WindSpeed']
-    WindDirection[,i] <- day_data[[i]][stations_codes, 'WindDirection']
-  }
-  
+  cc = cbind(coordx, coordy)
+  rownames(cc) = codes
+  points_AEMET = SpatialPoints(cc, CRS("+proj=longlat +datum=WGS84"))
+  points_AEMET = spTransform(points_AEMET, user_topo@proj4string)
+  AEMET_SPM = SpatialPointsMeteorology(points_AEMET, aemet_data, datevec, dataByDate = TRUE)
+
   # Finally, we build the interpolator object
-  interpolator <- MeteorologyInterpolationData(
-    points = station_coords_utm,
+  if(is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.30
+    )
+  }
+  interpolator <- MeteorologyInterpolationData(points = AEMET_SPM,
     elevation = stations_elevation,
-    slope = stations_slope,
-    aspect = stations_aspect,
-    MinTemperature = MinTemperature,
-    MaxTemperature = MaxTemperature,
-    Precipitation = Precipitation,
-    RelativeHumidity = RelativeHumidity,
-    Radiation = Radiation,
-    WindSpeed = WindSpeed,
-    WindDirection = WindDirection,
     params = params
   )
   
@@ -211,17 +214,7 @@ current_points_mode_process <- function(user_df, user_dates,
   interpolator@params$N_PrecipitationAmount = prec_cal$N
   interpolator@params$alpha_PrecipitationAmount = prec_cal$alpha
   rm(tmin_cal, tmax_cal, tdew_cal, prec_cal)
-  
-  # STEP 2 BUILD THE TOPOGRAPHY OBJECT
-  if (is.function(updateProgress)) {
-    updateProgress(
-      detail = 'Building the topography object',
-      value = 0.34
-    )
-  }
-  
-  user_topo <- getTopographyObject(user_df)
-  
+
   # STEP 3 MAKE THE INTERPOLATION
   if (is.function(updateProgress)) {
     updateProgress(
@@ -559,77 +552,78 @@ current_grid_mode_process <- function(user_coords, user_dates,
   datevec <- as.Date(datevec, format = '%j', origin = as.Date('1970-01-01'))
   ndays <- length(datevec)
   
+  
   # load the metereological files
-  day_data <- vector('list', ndays)
-  for (i in seq_along(datevec)) {
-    # files
-    day_data[[i]] <- readmeteorologypoint(
-      file.path('/home', 'miquel', 'Datasets', 'Climate', 'Sources', 'AEMET',
-                'Download', 'DailyCAT',
-                paste0(as.character(datevec[[i]]), '.txt'))
+  aemet_data = vector("list", length(datevec))
+  codes = character(0)
+  coordx = numeric(0)
+  coordy = numeric(0)
+  stations_elevation = numeric(0)
+  varnames = c("DOY", "MeanTemperature", "MinTemperature", 
+               "MaxTemperature", "Precipitation", "MeanRelativeHumidity", 
+               "MinRelativeHumidity", "MaxRelativeHumidity", "Radiation", 
+               "WindSpeed", "WindDirection")
+  for(i in 1:ndays) {
+    if (is.function(updateProgress)) {
+      updateProgress(
+        detail = paste0('Reading data: ', as.character(datevec[i])),
+        value = 0.05
+      )
+    }
+    # get current year
+    year <- format(datevec[[i]],"%Y")
+    file = file.path('/home', 'miquel', 'Datasets', 'Climate', 'Sources', 'AEMET',
+                     'Download', year,
+                     paste0(as.character(datevec[i]), '.txt'))
+    # print(file)
+    if(file.exists(file)) {
+      df = read.table(file, sep="\t", header=TRUE)
+      newst = !(rownames(df) %in% codes)
+      if(sum(newst)>0) {
+        if(("coords.x1" %in% names(df)) && ("coords.x2" %in% names(df)) && ("elevation" %in% names(df))) {
+          codes = c(codes, rownames(df)[newst])
+          coordx = c(coordx, df$coords.x1[newst])
+          coordy = c(coordy, df$coords.x2[newst])
+          stations_elevation = c(stations_elevation, df$elevation[newst])
+        }
+        else if(("long" %in% names(df)) && ("lat" %in% names(df)) && ("elevation" %in% names(df))) {
+          codes = c(codes, rownames(df)[newst])
+          coordx = c(coordx, df$long[newst])
+          coordy = c(coordy, df$lat[newst])
+          stations_elevation = c(stations_elevation, df$elevation[newst])
+        }
+      }
+    } else {#Add missing date data
+      df = data.frame(matrix(NA, nrow = length(codes), ncol=length(varnames)))
+      row.names(df) = codes
+    }
+    aemet_data[[i]] = df
+  }
+  
+  if(is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Merging daily data',
+      value = 0.10
     )
-    # codes
-    codes <- row.names(day_data[[i]])
-    # excluded codes
-    excodes <- codes[codes %in% excludeRainFromStations]
-    # NAs to excluded (apply quality check results)
-    day_data[[i]][excodes, 'Precipitation'] <- NA
   }
-  
-  # get general info needed later
-  stations_codes <- row.names(day_data[[1]])
-  stations_elevation <- day_data[[1]]$elevation
-  stations_slope <- rep(0, length(stations_elevation))
-  stations_aspect <- rep(0, length(stations_elevation))
-  stations_coords <- cbind(day_data[[1]]$coords.x1, day_data[[1]]$coords.x2)
-  stations_coords_sp <- SpatialPoints(
-    stations_coords, CRS("+proj=longlat +datum=WGS84")
-  )
-  station_coords_utm <- spTransform(
-    stations_coords_sp,
-    CRS("+init=epsg:3043 +proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs")
-  )
-  
-  stations_n <- length(stations_elevation)
-  
-  # reshape the data to build the MetereologyInterpolationData object
-  MinTemperature <- matrix(
-    NA, nrow = stations_n, ncol = ndays,
-    dimnames = list(stations_codes, as.character(datevec))
-  )
-  MaxTemperature <- MinTemperature
-  Precipitation <- MinTemperature
-  RelativeHumidity <- MinTemperature
-  Radiation <- MinTemperature
-  WindSpeed <- MinTemperature
-  WindDirection <- MinTemperature
-  
-  # fill the data
-  for (i in seq_along(datevec)) {
-    MinTemperature[,i] <- day_data[[i]][stations_codes, 'MinTemperature']
-    MaxTemperature[,i] <- day_data[[i]][stations_codes, 'MaxTemperature']
-    Precipitation[,i] <- day_data[[i]][stations_codes, 'Precipitation']
-    RelativeHumidity[,i] <- day_data[[i]][stations_codes, 'MeanRelativeHumidity']
-    Radiation[,i] <- day_data[[i]][stations_codes, 'Radiation']
-    WindSpeed[,i] <- day_data[[i]][stations_codes, 'WindSpeed']
-    WindDirection[,i] <- day_data[[i]][stations_codes, 'WindDirection']
-  }
+  cc = cbind(coordx, coordy)
+  rownames(cc) = codes
+  points_AEMET = SpatialPoints(cc, CRS("+proj=longlat +datum=WGS84"))
+  points_AEMET = spTransform(points_AEMET, user_topo@proj4string)
+  AEMET_SPM = SpatialPointsMeteorology(points_AEMET, aemet_data, datevec, dataByDate = TRUE)
   
   # Finally, we build the interpolator object
-  interpolator <- MeteorologyInterpolationData(
-    points = station_coords_utm,
-    elevation = stations_elevation,
-    slope = stations_slope,
-    aspect = stations_aspect,
-    MinTemperature = MinTemperature,
-    MaxTemperature = MaxTemperature,
-    Precipitation = Precipitation,
-    RelativeHumidity = RelativeHumidity,
-    Radiation = Radiation,
-    WindSpeed = WindSpeed,
-    WindDirection = WindDirection,
-    params = params
+  if(is.function(updateProgress)) {
+    updateProgress(
+      detail = 'Building the interpolation object',
+      value = 0.30
+    )
+  }
+  interpolator <- MeteorologyInterpolationData(points = AEMET_SPM,
+                                               elevation = stations_elevation,
+                                               params = params
   )
+
   
   # and set the parameters obtained in the calibration
   load('Data/calibrations.RData')
