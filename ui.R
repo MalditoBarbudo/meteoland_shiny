@@ -144,7 +144,7 @@ navbarPage(
   # 
   # Doc and Vignettes ####
   tabPanel(
-    title = 'Documentation & Vignettes', icon = icon('book'),
+    title = 'Documentation', icon = icon('book'),
     
     # a little space
     br(),
@@ -562,7 +562,7 @@ navbarPage(
             2,
             wellPanel(
               br(), br(),
-              selectInput('qa_year', 'Year:', 1976:2016, 1976),
+              selectInput('qa_year', 'Year:', 1976:2017, 1976),
               br(),br(),br(),br(),br(),
               br(),br(),br(),br(),br(),
               br(),br(),br(),br(),br(),

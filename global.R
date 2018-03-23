@@ -1370,7 +1370,7 @@ content_function <- function(input, data, file) {
 
 ################################################################################
 #### QA needed data ####
-qa_years <- 1976:2016
+qa_years <- 1976:2017
 qa_sum <- vector('list', length(qa_years))
 qa_list <- vector('list', length(qa_years))
 
