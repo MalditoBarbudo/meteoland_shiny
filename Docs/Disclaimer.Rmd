@@ -10,11 +10,11 @@ at [Forest Sciences Centre of Catalonia (CTFC)](http://www.ctfc.cat),
 in collaboration with the
 [Center for Ecological Research and Forestry Applications (CREAF)](http://www.creaf.cat/):
 
-  + *Idea and conceptual design*: Miquel de Cáceres (CTFC-CEMFOR/CREAF), Víctor Granda (CTFC-CEMFOR) & Antoine Cabon (CTFC-CEMFOR/CREAF).
+  + *Idea and conceptual design*: Miquel de Cáceres (CTFC/CREAF), Víctor Granda (CTFC) & Antoine Cabon (CTFC/CREAF).
   
-  + *Package development*: Miquel De Cáceres (CTFC-CEMFOR/CREAF), Antoine Cabon (CTFC-CEMFOR/CREAF), Nicolas Martin StPaul (INRA) & Víctor Granda (CTFC-CEMFOR).
+  + *Package development*: Miquel De Cáceres (CTFC/CREAF), Antoine Cabon (CTFC/CREAF), Nicolas Martin StPaul (INRA) & Víctor Granda (CTFC).
   
-  + *User interface*: Víctor Granda (CTFC-CEMFOR).
+  + *User interface*: Víctor Granda (CTFC).
   
   + *Contact*: Miquel De Cáceres (miquelcaceres@gmail.com)
 
@@ -51,9 +51,3 @@ accuracy of results may be impaired by several factors, like inaccuracies of
 input data, inappropriate model design or parameterization. Users should be aware
 of all these limitations when using the data offered here. We decline all
 responsibility for how the data in this website is used by third parties.
-
----
-
-![Vegetation Modeling Group](../www/LOGO_Group.png)
-![Forest Sciences Centre of Catalonia (CTFC)](../www/logo_ctfc.png)
-![Centre of Ecological Research and Forest Applications (CREAF)](../www/logo_creaf.png)

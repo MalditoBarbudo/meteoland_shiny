@@ -657,6 +657,42 @@ navbarPage(
     title = 'About', icon = icon('info-circle'),
     
     # RMardown document
-    includeMarkdown('Docs/Disclaimer.Rmd')
+    includeMarkdown('Docs/Disclaimer.Rmd'),
+    
+    # an space
+    br(), br(),
+    
+    div(
+      style = 'text-align:center',
+      fluidRow(
+        column(
+          4,
+          a(
+            id = 'logo_grupo',
+            href = "http://vegmod.ctfc.cat/",
+            img(style = 'display:inline-block',
+                src = 'LOGO_Group_scaled.png')
+          )
+        ),
+        column(
+          4,
+          a(
+            id = 'logo_ctfc',
+            href = "http://www.ctfc.cat/",
+            img(style = 'display:inline-block',
+                src = 'logo_ctfc_scaled.png')
+          )
+        ),
+        column(
+          4,
+          a(
+            id = 'logo_creaf',
+            href = "http://www.creaf.cat/",
+            img(style = 'display:inline-block',
+                src = 'logo_creaf_scaled.png')
+          )
+        )
+      )
+    )
   )
 )
