@@ -144,50 +144,77 @@ navbarPage(
   # 
   # Doc and Vignettes ####
   tabPanel(
-    title = 'Documentation', icon = icon('book'),
-    
-    # a little space
-    br(),
-    
-    fluidRow(
-      
-      column(
-        2,
-        downloadButton('simpleguide_dwn', label = 'Simple user guide')
-      ),
-      
-      column(
-        3,
-        p('Simple guide to start using the package')
-      ),
-      
-      
-      
-      column(
-        2, offset = 1,
-        downloadButton('advancedguide_dwn', label = 'Advanced user guide')
-      ),
-      
-      column(
-        3,
-        p('Detailed description of package functions and mathematical',
-          'calculations of each procedure')
+    title = 'Installation & Documentation', icon = icon('book'),
+    fluidPage(
+      h2('Package installation'),
+      br(),
+      fluidRow(
+        # RMardown document
+        column(
+          8,
+          includeMarkdown('Docs/Installation.Rmd')
+        )
       )
     ),
+    # a little space
+    br(),br(),
     
-    br(), br(), br(),
-    
-    fluidRow(
-      
-      column(
-        2,
-        downloadButton('appguide_dwn', label = 'App. user guide')
+    fluidPage(
+      h2('Package vignettes'),
+      h4('Tutorials explaining the main functions of the package'),
+      br(),
+
+      fluidRow(
+        column(
+          2,
+          downloadButton('simpleguide_dwn', label = 'Simple user guide')
+        ),
+
+        column(
+          3,
+          p('Simple guide to start using the package')
+        ),
+
+        column(
+          2, offset = 1,
+          downloadButton('advancedguide_dwn', label = 'Advanced user guide')
+        ),
+
+        column(
+          3,
+          p('Detailed description of package functions and mathematical',
+            'calculations of each procedure')
+        )
       ),
-      
-      column(
-        3,
-        p('A short guide to learn to use the shiny app included in this',
-          'web page')
+
+      br(), br(), br(),
+
+      fluidRow(
+        column(
+          2,
+          downloadButton('appguide_dwn', label = 'App. user guide')
+        ),
+
+        column(
+          3,
+          p('A short guide to learn to use the shiny app included in this',
+            'web page')
+        )
+      )
+    ),
+    # a little space
+    br(),br(),
+    fluidPage(
+      h2('Citation'),
+      h4('Please, cite the package as follows:'),
+      br(),
+      fluidRow(
+        column(
+          12,
+          p('De Caceres M, Martin-StPaul N, Turco M, Cabon A, Granda V (2018) Estimating daily meteorological data and downscaling
+  climate models over landscapes.',
+          'Environmental Modelling and Software 108: 186-196.')
+        )
       )
     )
   ),
