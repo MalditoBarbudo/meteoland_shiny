@@ -150,7 +150,7 @@ current_points_mode_process <- function(user_df, user_dates,
     # get current year
     year <- format(datevec[[i]],"%Y")
     file = file.path('/home', 'miquel', 'Datasets', 'Climate', 'Sources', 'AEMET',
-                     'Download', year,
+                     'Download', 'DailySPAIN',
                      paste0(as.character(datevec[i]), '.txt'))
     # print(file)
     if(file.exists(file)) {

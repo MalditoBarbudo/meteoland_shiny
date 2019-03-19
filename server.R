@@ -88,7 +88,7 @@ function(input, output, session) {
         'date_range_historical',
         label = 'Select the date or date range',
         start = NA, end = NA,
-        min = '1976-01-01', max = '2017-12-31',
+        min = '1976-01-01', max = '2018-12-31',
         startview = 'decade'
       )
 
