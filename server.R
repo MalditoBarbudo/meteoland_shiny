@@ -318,10 +318,10 @@ function(input, output, session) {
   
   # Download helpers (Vignettes) ####
   
-  output$simpleguide_dwn <- downloadHandler(
-    filename = 'SimpleUserGuide.pdf',
+  output$userguide_dwn <- downloadHandler(
+    filename = 'UserGuide.html',
     content = function(file) {
-      file.copy('www/_main.pdf', file)
+      file.copy('Docs/UserGuide.html', file)
     }
   )
   output$advancedguide_dwn <- downloadHandler(

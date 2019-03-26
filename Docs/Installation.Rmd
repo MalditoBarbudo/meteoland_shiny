@@ -8,4 +8,6 @@ Package `meteoland` can be found at [CRAN](https://cran.r-project.org/), where n
 
 Required package `devtools` should be installed/updated first. Documentation on the models included in `meteoland` and how to run them using the package functions can be found below. Additionally, users can have help to run package functions directly as package vignettes, by forcing their inclusion in installation: 
 
-`devtools::install_github("miquelcaceres/meteoland", build_vignettes=TRUE)`
+`devtools::install_github("miquelcaceres/meteoland", build_opts = c("--no-resave-data", "--no-manual"))`
+
+Note that vignette building may cause installation problems. Install the package without vignettes if this happens.

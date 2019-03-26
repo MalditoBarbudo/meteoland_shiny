@@ -165,14 +165,15 @@ navbarPage(
       br(),
 
       fluidRow(
+        #render(system.file("doc/UserGuide.Rmd", package = "meteoland"), html_document(toc = TRUE), output_dir = "Docs/")
         column(
           2,
-          downloadButton('simpleguide_dwn', label = 'Simple user guide')
+          downloadButton('userguide_dwn', label = 'User guide')
         ),
 
         column(
           3,
-          p('Simple guide to start using the package')
+          p('User guide to start using package meteoland')
         ),
 
         column(
@@ -206,7 +207,7 @@ navbarPage(
     br(),br(),
     fluidPage(
       h2('Citation'),
-      h4('Please, cite the package as follows:'),
+      h4('If you use the package or interpolated data from this website, please use the following citation of our work:'),
       br(),
       fluidRow(
         column(
