@@ -5,7 +5,7 @@ output: html_document
 
 ## Authorship
 
-This web-based service has been develop by the [Vegetation Modeling Group](http://vegmod.ctfc.cat/)
+This web-based service has been develop by the [Vegetation Modeling Group](http://vegmod.github.iu/)
 at [Forest Sciences Centre of Catalonia (CTFC)](http://www.ctfc.cat),
 in collaboration with the
 [Center for Ecological Research and Forestry Applications (CREAF)](http://www.creaf.cat/):

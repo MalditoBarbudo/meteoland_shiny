@@ -1,8 +1,0 @@
----
-title: "Disclaimer"
-output: html_document
----
-
-## Welcome Page
-
-`r emo::ji('hammer')` `r emo::ji('rescue_worker_helmet')` IN CONSTRUCTION `r emo::ji('rescue_worker_helmet')` `r emo::ji('hammer')`
